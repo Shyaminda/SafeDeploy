@@ -1,7 +1,24 @@
-export function isBurningFast(burnRate: number): boolean {
-  return burnRate > 2;
-}
+export type BurnRateSeverity =
+  | "normal"
+  | "slow-burn"
+  | "fast-burn"
+  | "exhausted";
 
-export function isBurningSlow(burnRate: number): boolean {
-  return burnRate > 1;
+export function evaluateBurnRate(
+  burnRate: number,
+  remainingBudgetRatio: number
+): BurnRateSeverity {
+  if (remainingBudgetRatio <= 0) {
+    return "exhausted";
+  }
+
+  if (burnRate > 2) {
+    return "fast-burn";
+  }
+
+  if (burnRate > 1) {
+    return "slow-burn";
+  }
+
+  return "normal";
 }
