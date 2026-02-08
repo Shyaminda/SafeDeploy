@@ -1,4 +1,4 @@
-import { SLI } from "./sli";
+import type { SLI } from "./sli.js";
 
 export interface SLO {
 	name: string;
