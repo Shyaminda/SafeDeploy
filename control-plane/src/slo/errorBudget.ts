@@ -8,17 +8,19 @@ export interface ErrorBudget {
 export function calculateErrorBudget(
 	sloTarget: number,
 	totalRequests: number,
-	failedRequests: number,
+	badEvents: number,
 	timeWindowRatio: number
 ): ErrorBudget {
 	const allowedErrors = totalRequests * (1 - sloTarget);
-	const consumedErrors = failedRequests;
+	const consumedErrors = badEvents;
 	const remainingErrors = Math.max(allowedErrors - consumedErrors, 0);
+
+	const burnRate = consumedErrors / (allowedErrors * timeWindowRatio);
 
 	return {
 		total: allowedErrors,
 		remaining: remainingErrors,
 		consumed: consumedErrors,
-		burnRate: consumedErrors / (allowedErrors * timeWindowRatio)
+		burnRate: burnRate
 	}
 }
