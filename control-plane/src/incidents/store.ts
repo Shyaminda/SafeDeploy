@@ -11,3 +11,16 @@ export function saveIncident(incident: Incident) {
     JSON.stringify(incident, null, 2)
   );
 }
+
+export function loadIncidents(): Incident[] {
+  if (!fs.existsSync(BASE)) return [];
+
+  return fs
+    .readdirSync(BASE)
+    .filter((file) => file.endsWith(".json"))
+    .map((file) =>
+      JSON.parse(
+        fs.readFileSync(path.join(BASE, file), "utf-8")
+      ) as Incident
+    );
+}

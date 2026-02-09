@@ -1,5 +1,8 @@
 import { evaluateBurnRate } from "./decisions/burnRate.js";
 import { explainBurnDecision } from "./decisions/explain.js";
+import type { Incident } from "./incidents/incident.js";
+import { transitionIncident } from "./incidents/lifecycle.js";
+import { loadIncidents, saveIncident } from "./incidents/store.js";
 import { queryPrometheus } from "./observability/prometheus.js";
 import { calculateErrorBudget } from "./slo/errorBudget.js";
 import { DEMO_APP_SLIS } from "./slo/sli.js";
@@ -39,4 +42,40 @@ export async function evaluateDemoService() {
   console.log(
 	`[DECISION] severity=${severity} | reason=${explanation}`
 	);
+
+  const incidents = loadIncidents();
+
+  const activeIncident = incidents.find(
+    (i) =>
+      i.service === "demo-app" &&
+      !["resolved", "postmortem-complete"].includes(i.currentState)
+  );
+
+  if (severity === "fast-burn" || severity === "exhausted") {
+    if(!activeIncident) {
+      const incident: Incident = {
+        id: `incident-${Date.now()}`,
+        service: "demo-app",
+        severity,
+        currentState: "detected",
+        timeline: [],
+        createdAt: new Date().toISOString(),
+      }
+
+      const investigating = transitionIncident(
+        incident,
+        "investigating",
+        explanation,
+        "system"
+      );
+
+      console.log(`[INCIDENT] ${investigating.id} transitioned to investigating`);
+
+      saveIncident(investigating);
+    }  else {
+      console.log(
+        `[INCIDENT] ${activeIncident.id} already active — continuing investigation`
+      );
+    }
+  }
 }

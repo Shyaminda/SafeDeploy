@@ -1,0 +1,16 @@
+{
+  "id": "incident-1770654342328",
+  "service": "demo-app",
+  "severity": "exhausted",
+  "currentState": "investigating",
+  "timeline": [
+    {
+      "from": "detected",
+      "to": "investigating",
+      "at": "2026-02-09T16:25:42.329Z",
+      "triggeredBy": "system",
+      "reason": "Error budget exhausted; service is operating outside SLO."
+    }
+  ],
+  "createdAt": "2026-02-09T16:25:42.328Z"
+}
