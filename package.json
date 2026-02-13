@@ -4,12 +4,10 @@
   "description": "",
   "main": "index.js",
   "type": "module",
-  
   "packageManager": "pnpm@10.28.2",
   "engines": {
     "node": ">=22"
   },
-
   "dependencies": {
     "asynckit": "^0.4.0",
     "axios": "^1.13.5",
@@ -35,6 +33,7 @@
     "mime-db": "^1.52.0",
     "mime-types": "^2.1.35",
     "nodemon": "^3.1.11",
+    "pino": "^10.3.1",
     "proxy-from-env": "^1.1.0",
     "undici-types": "^7.16.0"
   },
@@ -61,7 +60,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prepare": "husky",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit"
   },
   "lint-staged": {
     "*.{ts,js}": [
