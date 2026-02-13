@@ -1,33 +1,51 @@
 import js from "@eslint/js";
-import tseslint from "typescript-eslint";
+import tsParser from "@typescript-eslint/parser";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
 import security from "eslint-plugin-security";
 import prettierPlugin from "eslint-plugin-prettier";
 import prettierConfig from "eslint-config-prettier";
+import globals from "globals";
 
 export default [
+  {
+    ignores: [
+      "node_modules",
+      "dist",
+      "incidents",
+      "incident-reports",
+      "dashboards",
+      "documentation",
+    ],
+  },
+
   js.configs.recommended,
-  ...tseslint.configs.recommended,
-  prettierConfig, // disables conflicting formatting rules
+  prettierConfig,
 
   {
     files: ["**/*.ts"],
     languageOptions: {
-      parser: tseslint.parser,
+      parser: tsParser,
       parserOptions: {
-        project: "./tsconfig.json",
+        project: ["./tsconfig.json"],
+      },
+      globals: {
+        ...globals.node,
       },
     },
     plugins: {
+      "@typescript-eslint": tsPlugin,
       security,
       prettier: prettierPlugin,
     },
     rules: {
       "prettier/prettier": "error",
 
-      // Control-plane logging is intentional
       "no-console": "off",
 
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_" },
+      ],
       "@typescript-eslint/explicit-function-return-type": "warn",
       "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/consistent-type-imports": "error",

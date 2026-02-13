@@ -5,6 +5,7 @@
 This document defines **how SafeDeploy makes decisions**.
 
 It explains:
+
 - what inputs are considered
 - how those inputs are evaluated
 - what decision states exist
@@ -28,9 +29,11 @@ translate into user-visible impact.
 SafeDeploy decisions are derived from four inputs:
 
 ### 1. Service Level Indicators (SLIs)
+
 SLIs represent **what users experience**.
 
 Examples:
+
 - Request latency (p95)
 - Request success rate
 
@@ -39,13 +42,16 @@ SLIs are sourced exclusively from observability systems (Prometheus).
 ---
 
 ### 2. Service Level Objectives (SLOs)
+
 SLOs define **acceptable user experience** as explicit contracts.
 
 Example:
+
 - `p95 latency < 300ms`
 - `availability ≥ 99.9%`
 
 SLOs establish:
+
 - what is considered healthy
 - what constitutes a violation
 - how much degradation is tolerated
@@ -53,14 +59,15 @@ SLOs establish:
 ---
 
 ### 3. Error Budgets
+
 Error budgets quantify **how much SLO violation is allowed** within a defined time window.
 
 They convert SLOs into a **numerical decision currency**.
 
 Conceptually:
 
-
 Error budgets enable objective decisions such as:
+
 - whether deployments may continue
 - whether rollback is justified
 - whether reliability work must be prioritized
@@ -68,6 +75,7 @@ Error budgets enable objective decisions such as:
 ---
 
 ### 4. Burn Rate
+
 Burn rate measures **how fast the error budget is being consumed** relative to the allowed pace.
 
 It answers the question:
@@ -99,39 +107,47 @@ No decision step mutates production systems.
 SafeDeploy classifies decisions into four severity states.
 
 ### `normal`
+
 - SLOs are being met
 - Error budget consumption is within acceptable limits
 - Deployments may proceed
 
 Interpretation:
+
 > The system is healthy from a user perspective.
 
 ---
 
 ### `slow-burn`
+
 - Error budget is being consumed faster than allowed
 - No immediate user catastrophe
 - Sustained behavior will exhaust budget
 
 Interpretation:
+
 > Risk is increasing; investigate and limit further exposure.
 
 ---
 
 ### `fast-burn`
+
 - Error budget is being consumed at a critical rate
 - User impact is imminent or already significant
 
 Interpretation:
+
 > Immediate action required to prevent widespread impact.
 
 ---
 
 ### `exhausted`
+
 - Error budget is fully consumed
 - SLO contract is violated
 
 Interpretation:
+
 > Continuing change is unjustifiable; rollback or stabilization is required.
 
 ---
@@ -141,11 +157,13 @@ Interpretation:
 SafeDeploy **does not execute actions directly**.
 
 Decisions are:
+
 - emitted as signals
 - logged with explanations
 - recorded for audit and learning
 
 Humans remain responsible for:
+
 - approving rollbacks
 - resuming deployments
 - modifying policies
@@ -157,11 +175,13 @@ This preserves accountability and prevents unsafe automation.
 ## Relationship to Incidents
 
 A decision may result in an incident when:
+
 - severity reaches `fast-burn` or `exhausted`
 - user impact is confirmed
 - corrective action is required
 
 Incident reports document:
+
 - what decision was made
 - why it was justified
 - what action was taken

@@ -1,8 +1,6 @@
 import type { BurnRateSeverity } from "./burnRate.js";
 
-export function explainBurnDecision(
-  severity: BurnRateSeverity
-): string {
+export function explainBurnDecision(severity: BurnRateSeverity): string {
   switch (severity) {
     case "fast-burn":
       return "Error budget is being consumed at a critical rate; immediate user impact likely.";

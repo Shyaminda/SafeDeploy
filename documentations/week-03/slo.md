@@ -13,6 +13,7 @@ SLOs convert raw signals (SLIs) into **explicit reliability contracts**.
 An SLO is a **promise made to users** about the quality of service they can expect.
 
 It defines:
+
 - What level of degradation is acceptable
 - When the system is considered unhealthy
 - How much failure is tolerated
@@ -39,6 +40,7 @@ An SLO always references a specific SLI.
 > p95 request latency must remain below 300ms
 
 **Rationale**:
+
 - Latency above 300ms is perceptible to users
 - Sustained tail latency degrades trust and usability
 
@@ -62,11 +64,13 @@ SLO violations do not automatically cause outages, but they **restrict further r
 ## Why SLOs Are Explicit
 
 Without SLOs:
+
 - Health is subjective
 - Decisions are debated
 - Risk tolerance is unclear
 
 With SLOs:
+
 - Health is measurable
 - Decisions are justifiable
 - Trade-offs are explicit

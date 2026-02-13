@@ -66,9 +66,9 @@ An artificial latency regression was selected as the failure mode because:
 A deliberate delay was introduced in the `/health` endpoint:
 
 ```typescript
-app.get('/health', async (_req, res) => {
+app.get("/health", async (_req, res) => {
   await new Promise((r) => setTimeout(r, 3000));
-  res.status(200).json({ status: 'ok - Application reached' });
+  res.status(200).json({ status: "ok - Application reached" });
 });
 ```
 
@@ -182,9 +182,9 @@ Key operational learnings:
 
 Two distinct actions were clarified:
 
-| Action | Description |
-|--------|-------------|
-| **Rollback** | Revert image via Git |
+| Action        | Description                                                 |
+| ------------- | ----------------------------------------------------------- |
+| **Rollback**  | Revert image via Git                                        |
 | **Promotion** | Complete rollout by removing pause or setting weight to 100 |
 
 **For Week 02:**

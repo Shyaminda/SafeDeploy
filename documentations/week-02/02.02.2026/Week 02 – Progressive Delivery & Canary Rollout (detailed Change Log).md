@@ -30,6 +30,7 @@ apps/demo-app/deployment.yaml
 **Reason:** Deployment cannot support canary traffic control - Progressive delivery requires a Rollout
 
 This enforces:
+
 - No all-at-once deploys
 - No implicit rollout behavior
 
@@ -59,6 +60,7 @@ argo-rollouts-xxxxx   1/1   Running
 ```
 
 **Key fix learned:**
+
 - Namespace must exist before applying controller
 - Partial installs lead to RBAC crash loops
 
@@ -107,11 +109,11 @@ spec:
 
 ### 4.2 Meaning of Each Canary Step
 
-| Configuration | Description |
-|---------------|-------------|
-| `replicas: 5` | Enables meaningful canary approximation |
+| Configuration   | Description                                  |
+| --------------- | -------------------------------------------- |
+| `replicas: 5`   | Enables meaningful canary approximation      |
 | `setWeight: 10` | ~1 pod becomes canary, ~4 pods remain stable |
-| `pause: {}` | Manual gate - No automation proceeds |
+| `pause: {}`     | Manual gate - No automation proceeds         |
 
 ## 5. Service Split (Traffic Isolation)
 
@@ -158,6 +160,7 @@ spec:
 ```
 
 **Important:**
+
 - Selectors are identical
 - Argo Rollouts dynamically labels pods
 
@@ -187,6 +190,7 @@ resources:
 ```
 
 This ensures:
+
 - Deployment is fully removed
 - Rollout is the only workload owner
 
@@ -245,4 +249,4 @@ No control-plane automation has been introduced yet.
 
 ---
 
-*End of Week 02 change log.*
+_End of Week 02 change log._

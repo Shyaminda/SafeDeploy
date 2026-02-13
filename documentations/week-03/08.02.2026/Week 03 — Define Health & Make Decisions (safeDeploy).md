@@ -139,7 +139,7 @@ export function calculateErrorBudget(
   sloTarget: number,
   totalEvents: number,
   badEvents: number,
-  timeWindowRatio: number
+  timeWindowRatio: number,
 ): ErrorBudget {
   const allowedBadEvents = totalEvents * (1 - sloTarget);
   const consumed = badEvents;
@@ -168,7 +168,7 @@ export type BurnRateSeverity =
 
 export function evaluateBurnRate(
   burnRate: number,
-  remainingRatio: number
+  remainingRatio: number,
 ): BurnRateSeverity {
   if (remainingRatio <= 0) return "exhausted";
   if (burnRate > 2) return "fast-burn";
@@ -237,7 +237,7 @@ export async function evaluateDemoService() {
   const budget = calculateErrorBudget(0.999, totalEvents, badEvents, 1 / 30);
   const severity = evaluateBurnRate(
     budget.burnRate,
-    budget.remaining / budget.total
+    budget.remaining / budget.total,
   );
 
   const explanation = explainBurnDecision(severity);

@@ -14,10 +14,12 @@ SLIs are defined **about a service**, not inside the service.
 An SLI is a **quantitative measurement of user experience**.
 
 Examples:
+
 - How fast responses are
 - How often requests succeed
 
 SLIs:
+
 - Are externally observed
 - Are derived from telemetry systems (Prometheus)
 - Do not rely on infrastructure metrics
@@ -27,6 +29,7 @@ SLIs:
 ## What SLIs Are Not
 
 SLIs are **not**:
+
 - CPU usage
 - Memory consumption
 - Pod health
@@ -45,6 +48,7 @@ Those are symptoms, not user experience.
 > The 95th percentile of request latency observed over a rolling time window.
 
 **User Meaning**:
+
 - 95% of users receive responses faster than this value
 - The slowest 5% represent tail latency and user pain
 
@@ -70,6 +74,7 @@ histogram_quantile(
 > Percentage of requests that complete successfully.
 
 **Status in Week 03**:
+
 - Defined conceptually
 - Not fully wired into the evaluation pipeline
 

@@ -219,7 +219,7 @@ curl http://localhost:32000/v2/_catalog
 Expected:
 
 ```json
-{"repositories":[]}
+{ "repositories": [] }
 ```
 
 ### 6.1 Pushing Demo App Image to In-Cluster Registry
@@ -261,7 +261,7 @@ curl http://localhost:32000/v2/_catalog
 Expected:
 
 ```json
-{"repositories":["demo-app"]}
+{ "repositories": ["demo-app"] }
 ```
 
 ---
@@ -337,6 +337,7 @@ STATUS: Running
 ```
 
 Failure indicators:
+
 - `ImagePullBackOff`
 - `ErrImagePull`
 
@@ -455,15 +456,15 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 
 ## Current State Summary
 
-| Component              | Status           |
-|------------------------|------------------|
-| Kubernetes             | Installed & Ready |
-| Runtime (containerd)   | Running          |
-| Networking (Calico)    | Working          |
-| Registry (in-cluster)  | Running          |
-| Image Pull Validation  | Verified         |
-| ArgoCD                 | Installed        |
-| Demo App (GitOps)      | Not deployed     |
+| Component             | Status            |
+| --------------------- | ----------------- |
+| Kubernetes            | Installed & Ready |
+| Runtime (containerd)  | Running           |
+| Networking (Calico)   | Working           |
+| Registry (in-cluster) | Running           |
+| Image Pull Validation | Verified          |
+| ArgoCD                | Installed         |
+| Demo App (GitOps)     | Not deployed      |
 
 ---
 

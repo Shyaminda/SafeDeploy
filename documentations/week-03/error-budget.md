@@ -21,6 +21,7 @@ It answers the question:
 ## Why Error Budgets Exist
 
 Without error budgets:
+
 - Reliability decisions become subjective
 - Delivery velocity conflicts with stability
 - Risk tolerance is unclear
@@ -52,6 +53,7 @@ Those 10 bad events are the **entire error budget** for the window.
 A bad event is **any request that violates the SLO**.
 
 Examples:
+
 - Requests slower than the latency threshold
 - Requests that fail availability checks
 
@@ -89,11 +91,13 @@ Burn rate determines **urgency**, not health.
 ## Decision Impact
 
 SafeDeploy uses error budgets to:
+
 - Allow or restrict deployments
 - Justify rollbacks
 - Trigger incident workflows
 
 When the error budget is exhausted:
+
 - All non-essential changes must stop
 - Reliability recovery becomes the priority
 
@@ -114,6 +118,7 @@ Incidents remain historical records.
 ## Summary
 
 Error budgets:
+
 - Quantify acceptable failure
 - Balance velocity and stability
 - Enable objective decision-making

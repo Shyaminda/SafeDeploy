@@ -6,7 +6,7 @@ export type BurnRateSeverity =
 
 export function evaluateBurnRate(
   burnRate: number,
-  remainingBudgetRatio: number
+  remainingBudgetRatio: number,
 ): BurnRateSeverity {
   if (remainingBudgetRatio <= 0) {
     return "exhausted";

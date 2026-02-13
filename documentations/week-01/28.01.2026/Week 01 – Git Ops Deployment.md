@@ -100,11 +100,11 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/Shyaminda/safeDeploy-environment.git'
+    repoURL: "https://github.com/Shyaminda/safeDeploy-environment.git"
     targetRevision: feature/development
     path: apps/demo-app
   destination:
-    server: 'https://kubernetes.default.svc'
+    server: "https://kubernetes.default.svc"
     namespace: default
   syncPolicy:
     automated:
@@ -206,14 +206,15 @@ Because `safeDeploy-environment` is private, ArgoCD required explicit Git creden
 Fine-grained PAT configuration:
 
 **Repository access:**
+
 - ✅ Only selected repositories
   - `safeDeploy-environment`
 
 **Repository permissions:**
 
-| Permission | Access |
-|------------|--------|
-| Contents   | ✅ Read |
+| Permission | Access                  |
+| ---------- | ----------------------- |
+| Contents   | ✅ Read                 |
 | Metadata   | ✅ Read (auto-required) |
 
 No other permissions were required.

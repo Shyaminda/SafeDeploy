@@ -1,4 +1,3 @@
 import { evaluateDemoService } from "./evaluationService.js";
 
-evaluateDemoService()
-  .catch(err => console.error(err));
+evaluateDemoService().catch((err) => console.error(err));
