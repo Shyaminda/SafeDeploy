@@ -5,6 +5,7 @@ import security from "eslint-plugin-security";
 import prettierPlugin from "eslint-plugin-prettier";
 import prettierConfig from "eslint-config-prettier";
 import globals from "globals";
+import boundaries from "eslint-plugin-boundaries";
 
 export default [
   {
@@ -36,8 +37,26 @@ export default [
       "@typescript-eslint": tsPlugin,
       security,
       prettier: prettierPlugin,
+      boundaries,
     },
     rules: {
+      "boundaries/element-types": [
+        "error",
+        {
+          default: "allow",
+          rules: [
+            {
+              from: ["decisions"],
+              allow: ["slo", "observability"],
+            },
+            {
+              from: ["actions"],
+              allow: ["incidents"],
+            },
+          ],
+        },
+      ],
+
       "prettier/prettier": "error",
 
       "no-console": "off",
