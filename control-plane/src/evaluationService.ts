@@ -1,3 +1,4 @@
+import { logger } from "../../lib/logger.js";
 import { proposeRollback } from "./actions/proposeRollback.js";
 import { evaluateBurnRate } from "./decisions/burnRate.js";
 import { explainBurnDecision } from "./decisions/explain.js";
@@ -34,7 +35,9 @@ export async function evaluateDemoService() {
 
   const explanation = explainBurnDecision(severity);
 
-  console.log(`[DECISION] severity=${severity} | reason=${explanation}`);
+  logger.info({
+    message: `[DECISION] severity=${severity} | reason=${explanation}`,
+  });
 
   const incidents = loadIncidents();
 
@@ -62,9 +65,9 @@ export async function evaluateDemoService() {
         "system",
       );
 
-      console.log(
-        `[INCIDENT] ${investigating.id} transitioned to investigating`,
-      );
+      logger.info({
+        message: `[INCIDENT] ${investigating.id} transitioned to investigating`,
+      });
 
       saveIncident(investigating);
 
@@ -72,9 +75,9 @@ export async function evaluateDemoService() {
         proposeRollback(investigating, budget, explanation);
       }
     } else {
-      console.log(
-        `[INCIDENT] ${activeIncident.id} already active — continuing investigation`,
-      );
+      logger.info({
+        message: `[INCIDENT] ${activeIncident.id} already active — continuing investigation`,
+      });
 
       if (severity === "exhausted") {
         proposeRollback(activeIncident, budget, explanation);

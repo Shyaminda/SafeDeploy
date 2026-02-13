@@ -1,3 +1,4 @@
+import { logger } from "../../../lib/logger.js";
 import type { Incident } from "../incidents/incident.js";
 import type { ErrorBudget } from "../slo/errorBudget.js";
 import type { ActionProposal } from "./proposal.js";
@@ -27,5 +28,8 @@ export function proposeRollback(
 
   saveProposal(proposal);
 
-  console.log(`[PROPOSAL] ${proposal.id} proposed rollback for ${incident.id}`);
+  logger.info(
+    { proposalId: proposal.id, incidentId: incident.id },
+    "Rollback proposed",
+  );
 }
