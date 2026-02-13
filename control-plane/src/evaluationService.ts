@@ -1,3 +1,4 @@
+import { proposeRollback } from "./actions/proposeRollback.js";
 import { evaluateBurnRate } from "./decisions/burnRate.js";
 import { explainBurnDecision } from "./decisions/explain.js";
 import type { Incident } from "./incidents/incident.js";
@@ -72,10 +73,18 @@ export async function evaluateDemoService() {
       console.log(`[INCIDENT] ${investigating.id} transitioned to investigating`);
 
       saveIncident(investigating);
+
+      if (severity === "exhausted") {
+        proposeRollback(investigating, budget, explanation)
+      }
     }  else {
       console.log(
         `[INCIDENT] ${activeIncident.id} already active — continuing investigation`
       );
+
+      if (severity === "exhausted") {
+        proposeRollback(activeIncident, budget, explanation)
+      }
     }
   }
 }
