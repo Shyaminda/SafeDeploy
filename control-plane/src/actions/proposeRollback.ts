@@ -8,7 +8,7 @@ export function proposeRollback(
   incident: Incident,
   budget: ErrorBudget,
   explanation: string,
-) {
+): ActionProposal {
   const proposal: ActionProposal = {
     id: `proposal-${Date.now()}`,
     incidentId: incident.id,
@@ -32,4 +32,6 @@ export function proposeRollback(
     { proposalId: proposal.id, incidentId: incident.id },
     "Rollback proposed",
   );
+
+  return proposal;
 }
