@@ -1,0 +1,16 @@
+{
+  "id": "proposal-1771064177574",
+  "incidentId": "existing-1",
+  "type": "rollback-rollout",
+  "createdAt": "2026-02-14T10:16:17.574Z",
+  "status": "proposed",
+  "justification": {
+    "severity": "exhausted",
+    "explanation": "Error budget exhausted; service is operating outside SLO.",
+    "evidence": {
+      "slo": "latency-p95-300ms",
+      "burnRate": 149.99999999999986,
+      "remainingBudget": 0
+    }
+  }
+}

@@ -1,12 +1,8 @@
 import axios from "axios";
-import dotenv from "dotenv";
+import { env } from "../config/env.js";
 
-dotenv.config();
-
-const PROMETHEUS_URL = process.env.PROM_URL!;
-
-export async function queryPrometheus(query: string) {
-  const res = await axios.get(`${PROMETHEUS_URL}/api/v1/query`, {
+export async function queryPrometheus(query: string): Promise<any> {
+  const res = await axios.get(`${env.PROM_URL}/api/v1/query`, {
     params: { query },
   });
 
