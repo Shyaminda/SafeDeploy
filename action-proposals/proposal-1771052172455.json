@@ -1,0 +1,16 @@
+{
+  "id": "proposal-1771052172455",
+  "incidentId": "incident-1",
+  "type": "rollback-rollout",
+  "createdAt": "2026-02-14T06:56:12.455Z",
+  "status": "proposed",
+  "justification": {
+    "severity": "exhausted",
+    "explanation": "Budget exhausted",
+    "evidence": {
+      "slo": "latency-p95-300ms",
+      "burnRate": 10,
+      "remainingBudget": 0
+    }
+  }
+}
