@@ -1,8 +1,8 @@
 import axios from "axios";
-import { env } from "../config/env.js";
+import { config } from "../config/index.js";
 
 export async function queryPrometheus(query: string): Promise<any> {
-  const res = await axios.get(`${env.PROM_URL}/api/v1/query`, {
+  const res = await axios.get(`${config.prometheus.url}/api/v1/query`, {
     params: { query },
   });
 

@@ -1,12 +1,17 @@
 import { describe, it, expect } from "vitest";
-import { z } from "zod";
+import { loadConfig } from "../env.js";
 
-describe("env schema", () => {
-  it("fails if PROM_URL is not a valid URL", () => {
-    const Schema = z.object({
-      PROM_URL: z.url(),
-    });
+describe("loadConfig", () => {
+  it("builds config correctly", () => {
+    const config = loadConfig({
+      PROM_URL: "http://localhost:9090",
+    } as any);
 
-    expect(() => Schema.parse({ PROM_URL: "not-a-url" })).toThrow();
+    expect(config.prometheus.url).toBe("http://localhost:9090");
+    expect(config.runtime.env).toBe("development");
+  });
+
+  it("throws on invalid URL", () => {
+    expect(() => loadConfig({ PROM_URL: "bad-url" } as any)).toThrow();
   });
 });

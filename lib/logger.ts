@@ -1,15 +1,15 @@
 import pino from "pino";
+import { config } from "../control-plane/src/config/index.js";
 
-const loggerOptions =
-  process.env.NODE_ENV !== "production"
-    ? {
-        level: process.env.LOG_LEVEL ?? "info",
-        transport: {
-          target: "pino-pretty",
-        },
-      }
-    : {
-        level: process.env.LOG_LEVEL ?? "info",
-      };
+const loggerOptions = !config.runtime.isProduction
+  ? {
+      level: config.logging.level,
+      transport: {
+        target: "pino-pretty",
+      },
+    }
+  : {
+      level: config.logging.level,
+    };
 
 export const logger = pino(loggerOptions);
