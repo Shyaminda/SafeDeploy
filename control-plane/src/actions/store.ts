@@ -4,7 +4,7 @@ import type { ActionProposal } from "./proposal.js";
 
 const BASE = path.join(process.cwd(), "action-proposals");
 
-export function saveProposal(proposal: ActionProposal) {
+export function saveProposal(proposal: ActionProposal): void {
   fs.mkdirSync(BASE, { recursive: true });
 
   fs.writeFileSync(

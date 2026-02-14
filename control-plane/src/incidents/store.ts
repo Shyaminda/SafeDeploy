@@ -4,7 +4,7 @@ import type { Incident } from "./incident.js";
 
 const BASE = path.join(process.cwd(), "incidents");
 
-export function saveIncident(incident: Incident) {
+export function saveIncident(incident: Incident): void {
   fs.mkdirSync(BASE, { recursive: true });
   fs.writeFileSync(
     path.join(BASE, `${incident.id}.json`),

@@ -10,7 +10,7 @@ import { calculateErrorBudget } from "./slo/errorBudget.js";
 import { DEMO_APP_SLIS } from "./slo/sli.js";
 import { DEMO_APP_SLOS } from "./slo/slo.js";
 
-export async function evaluateDemoService() {
+export async function evaluateDemoService(): Promise<void> {
   const latencyResult = await queryPrometheus(
     DEMO_APP_SLIS.find((s) => s.name === "request_latency_p95")!.promQuery,
   );
