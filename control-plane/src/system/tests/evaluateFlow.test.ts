@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as prometheus from "../../observability/prometheus.js";
 import * as incidentStore from "../../incidents/store.js";
 import * as proposalModule from "../../actions/proposeRollback.js";
-import { evaluateDemoService } from "../../evaluationService.js";
+import { evaluateDemoService } from "../evaluationService.js";
 
 describe("Full control-plane flow", () => {
   beforeEach(() => {
