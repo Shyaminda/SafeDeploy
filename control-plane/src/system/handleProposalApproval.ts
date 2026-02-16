@@ -3,6 +3,7 @@ import { loadIncidents, saveIncident } from "../incidents/store.js";
 import { transitionIncident } from "../incidents/lifecycle.js";
 import { prepareRollbackCommit } from "../actions/git/prepareRollbackCommit.js";
 import { createRollbackPR } from "../actions/git/createRollbackPR.js";
+import { saveEvidence } from "../evidence/store.js";
 
 export async function handleProposalApproval(
   proposalId: string,
@@ -12,6 +13,12 @@ export async function handleProposalApproval(
   if (proposal.status !== "approved") {
     return;
   }
+
+  saveEvidence(proposal.incidentId, "approval.json", {
+    proposalId: proposal.id,
+    approvedAt: new Date().toISOString(),
+    approvedBy: "user",
+  });
 
   const incidents = loadIncidents();
   const incident = incidents.find((i) => i.id === proposal.incidentId);

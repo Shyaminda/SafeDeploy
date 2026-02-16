@@ -2,6 +2,7 @@ import { logger } from "../../../lib/logger.js";
 import { proposeRollback } from "../actions/proposeRollback.js";
 import { evaluateBurnRate } from "../decisions/burnRate.js";
 import { explainBurnDecision } from "../decisions/explain.js";
+import { saveEvidence } from "../evidence/store.js";
 import type { Incident } from "../incidents/incident.js";
 import { transitionIncident } from "../incidents/lifecycle.js";
 import { loadIncidents, saveIncident } from "../incidents/store.js";
@@ -16,13 +17,11 @@ export async function evaluateDemoService(): Promise<void> {
   );
 
   const latencyValue = Number(latencyResult[0].value[1]);
-
   const latencyMs = latencyValue * 1000;
 
   const latencySLO = DEMO_APP_SLOS.find((s) => s.name.includes("latency"))!;
   const sloTarget = latencySLO.target;
 
-  // Fake request counts for now (acceptable in Week 03)
   const totalRequests = 10000;
   const badEvents = latencyMs > sloTarget ? 50 : 0;
 
@@ -71,6 +70,30 @@ export async function evaluateDemoService(): Promise<void> {
 
       saveIncident(investigating);
 
+      saveEvidence(investigating.id, "decision.json", {
+        burnRate: budget.burnRate,
+        remainingBudget: budget.remaining,
+        totalBudget: budget.total,
+        severity,
+        explanation,
+        timestamp: new Date().toISOString(),
+      });
+
+      saveEvidence(investigating.id, "slo.json", {
+        metric: "request_latency_p95",
+        observedLatencyMs: latencyMs,
+        targetMs: sloTarget,
+        timestamp: new Date().toISOString(),
+      });
+
+      saveEvidence(investigating.id, "budget.json", {
+        total: budget.total,
+        remaining: budget.remaining,
+        consumed: budget.consumed,
+        burnRate: budget.burnRate,
+        timestamp: new Date().toISOString(),
+      });
+
       if (severity === "exhausted") {
         proposeRollback(investigating, budget, explanation);
       }
@@ -82,6 +105,32 @@ export async function evaluateDemoService(): Promise<void> {
       if (severity === "exhausted") {
         proposeRollback(activeIncident, budget, explanation);
       }
+    }
+  }
+
+  if (severity === "normal") {
+    const mitigatedIncident = incidents.find(
+      (i) => i.service === "demo-app" && i.currentState === "mitigated",
+    );
+
+    if (mitigatedIncident) {
+      const resolved = transitionIncident(
+        mitigatedIncident,
+        "resolved",
+        "SLO returned to healthy state after mitigation",
+        "system",
+      );
+
+      saveIncident(resolved);
+
+      saveEvidence(resolved.id, "resolution.json", {
+        resolvedAt: new Date().toISOString(),
+        reason: "SLO returned to healthy state after mitigation",
+      });
+
+      logger.info({
+        message: `[INCIDENT] ${resolved.id} resolved`,
+      });
     }
   }
 }

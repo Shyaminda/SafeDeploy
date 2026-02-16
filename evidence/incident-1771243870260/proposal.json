@@ -1,9 +1,9 @@
 {
-  "id": "proposal-1771241121629",
-  "incidentId": "incident-1771241121628",
+  "id": "proposal-1771243870264",
+  "incidentId": "incident-1771243870260",
   "type": "rollback-rollout",
-  "createdAt": "2026-02-16T11:25:21.629Z",
-  "status": "approved",
+  "createdAt": "2026-02-16T12:11:10.264Z",
+  "status": "proposed",
   "justification": {
     "severity": "exhausted",
     "explanation": "Error budget exhausted; service is operating outside SLO.",
