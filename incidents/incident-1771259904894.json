@@ -1,0 +1,23 @@
+{
+  "id": "incident-1771259904894",
+  "service": "demo-app",
+  "severity": "exhausted",
+  "currentState": "mitigated",
+  "timeline": [
+    {
+      "from": "detected",
+      "to": "investigating",
+      "at": "2026-02-16T16:38:24.895Z",
+      "triggeredBy": "system",
+      "reason": "Error budget exhausted; service is operating outside SLO."
+    },
+    {
+      "from": "investigating",
+      "to": "mitigated",
+      "at": "2026-02-16T16:40:38.556Z",
+      "triggeredBy": "user",
+      "reason": "Rollback PR created: https://github.com/Shyaminda/safeDeploy-environment/pull/12"
+    }
+  ],
+  "createdAt": "2026-02-16T16:38:24.894Z"
+}

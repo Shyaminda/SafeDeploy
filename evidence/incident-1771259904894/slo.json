@@ -1,0 +1,6 @@
+{
+  "metric": "request_latency_p95",
+  "observedLatencyMs": 3456.538416666663,
+  "targetMs": 300,
+  "timestamp": "2026-02-16T16:38:24.896Z"
+}
