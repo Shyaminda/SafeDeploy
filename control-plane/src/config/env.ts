@@ -10,6 +10,11 @@ export const EnvSchema = z.object({
   LOG_LEVEL: z
     .enum(["fatal", "error", "warn", "info", "debug", "trace"])
     .default("info"),
+
+  GITHUB_TOKEN_PR_SE: z.string().optional(),
+  GITHUB_OWNER: z.string().optional(),
+  GITHUB_REPO: z.string().optional(),
+  GITHUB_BASE_BRANCH: z.string().optional(),
 });
 
 type ParsedEnv = z.infer<typeof EnvSchema>;
@@ -30,6 +35,12 @@ export function loadConfig(env: Record<string, string | undefined>) {
       isProduction: parsed.NODE_ENV === "production",
       isDevelopment: parsed.NODE_ENV === "development",
       isTest: parsed.NODE_ENV === "test",
+    },
+    github: {
+      PR_Token: parsed.GITHUB_TOKEN_PR_SE,
+      owner: parsed.GITHUB_OWNER,
+      repo: parsed.GITHUB_REPO,
+      baseBranch: parsed.GITHUB_BASE_BRANCH,
     },
   };
 }
