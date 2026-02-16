@@ -3,7 +3,7 @@
   "incidentId": "incident-1771220204605",
   "type": "rollback-rollout",
   "createdAt": "2026-02-16T05:36:44.611Z",
-  "status": "proposed",
+  "status": "approved",
   "justification": {
     "severity": "exhausted",
     "explanation": "Error budget exhausted; service is operating outside SLO.",

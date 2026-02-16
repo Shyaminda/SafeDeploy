@@ -1,3 +1,3 @@
-import { evaluateDemoService } from "./evaluationService.js";
+import { evaluateDemoService } from "./system/evaluationService.js";
 
 evaluateDemoService().catch((err) => console.error(err));

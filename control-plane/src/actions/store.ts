@@ -26,3 +26,12 @@ export function loadProposals(): ActionProposal[] {
         ) as ActionProposal,
     );
 }
+
+export function updateProposal(proposal: ActionProposal): void {
+  fs.mkdirSync(BASE, { recursive: true });
+
+  fs.writeFileSync(
+    path.join(BASE, `${proposal.id}.json`),
+    JSON.stringify(proposal, null, 2),
+  );
+}
