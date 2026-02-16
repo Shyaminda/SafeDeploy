@@ -12,3 +12,17 @@ export function saveProposal(proposal: ActionProposal): void {
     JSON.stringify(proposal, null, 2),
   );
 }
+
+export function loadProposals(): ActionProposal[] {
+  if (!fs.existsSync(BASE)) return [];
+
+  return fs
+    .readdirSync(BASE)
+    .filter((file) => file.endsWith(".json"))
+    .map(
+      (file) =>
+        JSON.parse(
+          fs.readFileSync(path.join(BASE, file), "utf-8"),
+        ) as ActionProposal,
+    );
+}

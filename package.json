@@ -59,8 +59,8 @@
   },
   "scripts": {
     "build": "tsc -b",
-    "start": "node dist/index.js",
-    "dev": "nodemon --exec \"tsc -b && node\" dist/index.js",
+    "start": "node dist/control-plane/src/index.js",
+    "dev": "nodemon --exec \"tsc -b && node\" dist/control-plane/src/index.js",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
