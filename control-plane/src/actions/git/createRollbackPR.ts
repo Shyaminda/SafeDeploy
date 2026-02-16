@@ -9,7 +9,7 @@ export async function createRollbackPR(
   commitMessage: string,
   prTitle: string,
   prBody: string,
-) {
+): Promise<string> {
   if (!config.github.PR_Token) {
     throw new Error("Missing GITHUB_TOKEN");
   }

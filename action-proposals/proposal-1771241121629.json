@@ -1,8 +1,8 @@
 {
-  "id": "proposal-1771220204611",
-  "incidentId": "incident-1771220204605",
+  "id": "proposal-1771241121629",
+  "incidentId": "incident-1771241121628",
   "type": "rollback-rollout",
-  "createdAt": "2026-02-16T05:36:44.611Z",
+  "createdAt": "2026-02-16T11:25:21.629Z",
   "status": "approved",
   "justification": {
     "severity": "exhausted",

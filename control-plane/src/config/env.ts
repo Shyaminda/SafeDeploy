@@ -15,6 +15,8 @@ export const EnvSchema = z.object({
   GITHUB_OWNER: z.string().optional(),
   GITHUB_REPO: z.string().optional(),
   GITHUB_BASE_BRANCH: z.string().optional(),
+  GITHUB_REPO_URL: z.string().optional(),
+  GITHUB_REPO_PATH: z.string().optional(),
 });
 
 type ParsedEnv = z.infer<typeof EnvSchema>;
@@ -41,6 +43,8 @@ export function loadConfig(env: Record<string, string | undefined>) {
       owner: parsed.GITHUB_OWNER,
       repo: parsed.GITHUB_REPO,
       baseBranch: parsed.GITHUB_BASE_BRANCH,
+      repoUrl: parsed.GITHUB_REPO_URL,
+      repoPath: parsed.GITHUB_REPO_PATH,
     },
   };
 }

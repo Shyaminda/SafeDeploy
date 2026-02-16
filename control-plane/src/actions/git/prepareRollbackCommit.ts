@@ -1,16 +1,24 @@
-import fs from "fs";
 import { simpleGit } from "simple-git";
+import fs from "fs";
+import path from "path";
+import { ensureEnvRepo } from "./repoManager.js";
+import { config } from "../../config/index.js";
 
 export async function prepareRollbackCommit(
-  repoPath: string,
   imageTag: string,
   branchName: string,
-) {
+): Promise<void> {
+  const repoPath = await ensureEnvRepo();
   const git = simpleGit(repoPath);
+
+  const baseBranch = config.github.baseBranch!;
+
+  await git.checkout(baseBranch);
+  await git.pull("origin", baseBranch);
 
   await git.checkoutLocalBranch(branchName);
 
-  const rolloutPath = `${repoPath}/apps/demo-app/rollout.yaml`;
+  const rolloutPath = path.join(repoPath, "apps/demo-app/rollout.yaml");
 
   const content = fs.readFileSync(rolloutPath, "utf-8");
 
@@ -21,7 +29,7 @@ export async function prepareRollbackCommit(
 
   fs.writeFileSync(rolloutPath, updated);
 
-  await git.add(".");
+  await git.add(rolloutPath);
   await git.commit(`Rollback to image ${imageTag}`);
   await git.push("origin", branchName);
 }

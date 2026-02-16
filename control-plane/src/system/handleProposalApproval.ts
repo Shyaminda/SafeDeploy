@@ -27,11 +27,7 @@ export async function handleProposalApproval(
   const branchName = `rollback-${proposal.incidentId}`;
   const imageTag = "55fccf8";
 
-  await prepareRollbackCommit(
-    "/tmp/safeDeploy-environment",
-    imageTag,
-    branchName,
-  );
+  await prepareRollbackCommit(imageTag, branchName);
 
   const prUrl = await createRollbackPR(
     branchName,
