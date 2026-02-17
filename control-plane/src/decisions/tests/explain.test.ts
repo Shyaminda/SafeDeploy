@@ -20,8 +20,12 @@ describe("explainBurnDecision (strict contract)", () => {
     );
   });
 
-  it("returns exact message for normal/default case", () => {
-    expect(explainBurnDecision("normal" as any)).toBe(
+  it("returns exact message for normal", () => {
+    expect(explainBurnDecision("normal")).toBe("Service operating within SLO.");
+  });
+
+  it("returns default message for unknown severity", () => {
+    expect(explainBurnDecision("unknown" as any)).toBe(
       "Service operating within SLO.",
     );
   });
