@@ -50,6 +50,160 @@ describe("handleProposalApproval", () => {
     expect(evidenceSpy).toHaveBeenCalled(); // approval evidence
   });
 
+  it("calls prepareRollbackCommit with correct arguments", async () => {
+    vi.spyOn(proposalModule, "approveProposal").mockReturnValue({
+      id: "proposal-1",
+      incidentId: "incident-1",
+      status: "approved",
+      type: "rollback-rollout",
+      createdAt: "",
+      justification: {} as any,
+    });
+
+    vi.spyOn(incidentStore, "loadIncidents").mockReturnValue([
+      {
+        id: "incident-1",
+        service: "demo-app",
+        severity: "exhausted",
+        currentState: "investigating",
+        timeline: [],
+        createdAt: "",
+      },
+    ] as any);
+
+    const gitSpy = vi
+      .spyOn(gitModule, "prepareRollbackCommit")
+      .mockResolvedValue(undefined);
+    vi.spyOn(prModule, "createRollbackPR").mockResolvedValue("http://pr-url");
+    vi.spyOn(incidentStore, "saveIncident").mockImplementation(() => {});
+    vi.spyOn(evidence, "saveEvidence").mockImplementation(() => {});
+
+    await handleProposalApproval("proposal-1");
+
+    expect(gitSpy).toHaveBeenCalledWith("55fccf8", "rollback-incident-1");
+  });
+
+  it("calls createRollbackPR with correct arguments", async () => {
+    vi.spyOn(proposalModule, "approveProposal").mockReturnValue({
+      id: "proposal-1",
+      incidentId: "incident-1",
+      status: "approved",
+      type: "rollback-rollout",
+      createdAt: "",
+      justification: {} as any,
+    });
+
+    vi.spyOn(incidentStore, "loadIncidents").mockReturnValue([
+      {
+        id: "incident-1",
+        service: "demo-app",
+        severity: "exhausted",
+        currentState: "investigating",
+        timeline: [],
+        createdAt: "",
+      },
+    ] as any);
+
+    vi.spyOn(gitModule, "prepareRollbackCommit").mockResolvedValue(undefined);
+    const prSpy = vi
+      .spyOn(prModule, "createRollbackPR")
+      .mockResolvedValue("http://pr-url");
+    vi.spyOn(incidentStore, "saveIncident").mockImplementation(() => {});
+    vi.spyOn(evidence, "saveEvidence").mockImplementation(() => {});
+
+    await handleProposalApproval("proposal-1");
+
+    expect(prSpy).toHaveBeenCalledWith(
+      "rollback-incident-1",
+      "Rollback incident-1",
+      "Automated rollback proposal",
+      "Triggered by proposal proposal-1",
+    );
+  });
+
+  it("saves approval evidence with correct structure", async () => {
+    vi.spyOn(proposalModule, "approveProposal").mockReturnValue({
+      id: "proposal-1",
+      incidentId: "incident-1",
+      status: "approved",
+      type: "rollback-rollout",
+      createdAt: "",
+      justification: {} as any,
+    });
+
+    vi.spyOn(incidentStore, "loadIncidents").mockReturnValue([
+      {
+        id: "incident-1",
+        service: "demo-app",
+        severity: "exhausted",
+        currentState: "investigating",
+        timeline: [],
+        createdAt: "",
+      },
+    ] as any);
+
+    vi.spyOn(gitModule, "prepareRollbackCommit").mockResolvedValue(undefined);
+    vi.spyOn(prModule, "createRollbackPR").mockResolvedValue("http://pr-url");
+    vi.spyOn(incidentStore, "saveIncident").mockImplementation(() => {});
+    const evidenceSpy = vi
+      .spyOn(evidence, "saveEvidence")
+      .mockImplementation(() => {});
+
+    await handleProposalApproval("proposal-1");
+
+    expect(evidenceSpy).toHaveBeenCalledWith(
+      "incident-1",
+      "approval.json",
+      expect.objectContaining({
+        proposalId: "proposal-1",
+        approvedBy: "user",
+      }),
+    );
+  });
+
+  it("transitions incident with PR URL in reason", async () => {
+    vi.spyOn(proposalModule, "approveProposal").mockReturnValue({
+      id: "proposal-1",
+      incidentId: "incident-1",
+      status: "approved",
+      type: "rollback-rollout",
+      createdAt: "",
+      justification: {} as any,
+    });
+
+    vi.spyOn(incidentStore, "loadIncidents").mockReturnValue([
+      {
+        id: "incident-1",
+        service: "demo-app",
+        severity: "exhausted",
+        currentState: "investigating",
+        timeline: [],
+        createdAt: "",
+      },
+    ] as any);
+
+    vi.spyOn(gitModule, "prepareRollbackCommit").mockResolvedValue(undefined);
+    vi.spyOn(prModule, "createRollbackPR").mockResolvedValue("http://pr-url");
+    const saveSpy = vi
+      .spyOn(incidentStore, "saveIncident")
+      .mockImplementation(() => {});
+    vi.spyOn(evidence, "saveEvidence").mockImplementation(() => {});
+
+    await handleProposalApproval("proposal-1");
+
+    expect(saveSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        currentState: "mitigated",
+        timeline: expect.arrayContaining([
+          expect.objectContaining({
+            to: "mitigated",
+            reason: expect.stringContaining("http://pr-url"),
+          }),
+        ]),
+      }),
+    );
+  });
+
   it("does nothing if proposal not approved", async () => {
     vi.spyOn(proposalModule, "approveProposal").mockReturnValue({
       id: "proposal-1",
@@ -60,6 +214,88 @@ describe("handleProposalApproval", () => {
       justification: {} as any,
     });
 
+    const prSpy = vi.spyOn(prModule, "createRollbackPR");
+    const evidenceSpy = vi.spyOn(evidence, "saveEvidence");
+
+    await handleProposalApproval("proposal-1");
+
+    expect(prSpy).not.toHaveBeenCalled();
+    expect(evidenceSpy).not.toHaveBeenCalled();
+  });
+
+  it("throws error when incident not found", async () => {
+    vi.spyOn(proposalModule, "approveProposal").mockReturnValue({
+      id: "proposal-1",
+      incidentId: "incident-nonexistent",
+      status: "approved",
+      type: "rollback-rollout",
+      createdAt: "",
+      justification: {} as any,
+    });
+
+    vi.spyOn(incidentStore, "loadIncidents").mockReturnValue([]);
+    vi.spyOn(evidence, "saveEvidence").mockImplementation(() => {});
+
+    await expect(handleProposalApproval("proposal-1")).rejects.toThrow(
+      "Incident not found for proposal",
+    );
+  });
+
+  it("does not create PR if incident is not investigating", async () => {
+    vi.spyOn(proposalModule, "approveProposal").mockReturnValue({
+      id: "proposal-1",
+      incidentId: "incident-1",
+      status: "approved",
+      type: "rollback-rollout",
+      createdAt: "",
+      justification: {} as any,
+    });
+
+    vi.spyOn(incidentStore, "loadIncidents").mockReturnValue([
+      {
+        id: "incident-1",
+        service: "demo-app",
+        severity: "exhausted",
+        currentState: "mitigated", // Not investigating
+        timeline: [],
+        createdAt: "",
+      },
+    ] as any);
+
+    vi.spyOn(evidence, "saveEvidence").mockImplementation(() => {});
+    const gitSpy = vi.spyOn(gitModule, "prepareRollbackCommit");
+    const prSpy = vi.spyOn(prModule, "createRollbackPR");
+    const saveSpy = vi.spyOn(incidentStore, "saveIncident");
+
+    await handleProposalApproval("proposal-1");
+
+    expect(gitSpy).not.toHaveBeenCalled();
+    expect(prSpy).not.toHaveBeenCalled();
+    expect(saveSpy).not.toHaveBeenCalled();
+  });
+
+  it("does not create PR if incident is resolved", async () => {
+    vi.spyOn(proposalModule, "approveProposal").mockReturnValue({
+      id: "proposal-1",
+      incidentId: "incident-1",
+      status: "approved",
+      type: "rollback-rollout",
+      createdAt: "",
+      justification: {} as any,
+    });
+
+    vi.spyOn(incidentStore, "loadIncidents").mockReturnValue([
+      {
+        id: "incident-1",
+        service: "demo-app",
+        severity: "exhausted",
+        currentState: "resolved",
+        timeline: [],
+        createdAt: "",
+      },
+    ] as any);
+
+    vi.spyOn(evidence, "saveEvidence").mockImplementation(() => {});
     const prSpy = vi.spyOn(prModule, "createRollbackPR");
 
     await handleProposalApproval("proposal-1");
