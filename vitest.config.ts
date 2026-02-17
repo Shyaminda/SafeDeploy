@@ -15,7 +15,9 @@ export default defineConfig({
         "**/proposal.ts",
         "**/index.ts",
         "**/store.ts",
-        "**/observability/prometheus.ts", // Infrastructure adapters don’t contain business logic
+        "**/observability/prometheus.ts", // Infrastructure adapter - external API
+        "**/actions/git/**", // Git/GitHub integration - test via integration tests
+        "**/manualProposalApproval.ts", // CLI entry point
       ],
 
       thresholds: {
