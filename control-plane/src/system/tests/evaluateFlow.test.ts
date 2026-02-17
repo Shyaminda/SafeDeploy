@@ -5,6 +5,8 @@ import * as incidentStore from "../../incidents/store.js";
 import * as proposalModule from "../../actions/proposeRollback.js";
 import * as evidence from "../../evidence/store.js";
 import * as burnRateModule from "../../decisions/burnRate.js";
+import * as sliModule from "../../slo/sli.js";
+import * as sloModule from "../../slo/slo.js";
 
 import { evaluateDemoService } from "../evaluationService.js";
 
@@ -287,5 +289,33 @@ describe("Full control-plane flow", () => {
 
     // No resolution for different service
     expect(saveSpy).not.toHaveBeenCalled();
+  });
+
+  it("throws error when SLI is not found", async () => {
+    vi.spyOn(sliModule, "DEMO_APP_SLIS", "get").mockReturnValue([]);
+
+    await expect(evaluateDemoService()).rejects.toThrow(
+      "SLI 'request_latency_p95' not found in configuration",
+    );
+  });
+
+  it("throws error when Prometheus returns no metrics", async () => {
+    vi.spyOn(prometheus, "queryPrometheus").mockResolvedValue([]);
+
+    await expect(evaluateDemoService()).rejects.toThrow(
+      "No metrics data returned from Prometheus",
+    );
+  });
+
+  it("throws error when SLO is not found", async () => {
+    vi.spyOn(prometheus, "queryPrometheus").mockResolvedValue([
+      { value: ["", "0.5"] },
+    ] as any);
+
+    vi.spyOn(sloModule, "DEMO_APP_SLOS", "get").mockReturnValue([]);
+
+    await expect(evaluateDemoService()).rejects.toThrow(
+      "SLO for latency not found in configuration",
+    );
   });
 });

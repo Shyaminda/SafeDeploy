@@ -12,14 +12,25 @@ import { DEMO_APP_SLIS } from "../slo/sli.js";
 import { DEMO_APP_SLOS } from "../slo/slo.js";
 
 export async function evaluateDemoService(): Promise<void> {
-  const latencyResult = await queryPrometheus(
-    DEMO_APP_SLIS.find((s) => s.name === "request_latency_p95")!.promQuery,
+  const latencySLI = DEMO_APP_SLIS.find(
+    (s) => s.name === "request_latency_p95",
   );
+  if (!latencySLI) {
+    throw new Error("SLI 'request_latency_p95' not found in configuration");
+  }
+
+  const latencyResult = await queryPrometheus(latencySLI.promQuery);
+  if (!latencyResult?.length) {
+    throw new Error("No metrics data returned from Prometheus");
+  }
 
   const latencyValue = Number(latencyResult[0].value[1]);
   const latencyMs = latencyValue * 1000;
 
-  const latencySLO = DEMO_APP_SLOS.find((s) => s.name.includes("latency"))!;
+  const latencySLO = DEMO_APP_SLOS.find((s) => s.name.includes("latency"));
+  if (!latencySLO) {
+    throw new Error("SLO for latency not found in configuration");
+  }
   const sloTarget = latencySLO.target;
 
   const totalRequests = 10000;
