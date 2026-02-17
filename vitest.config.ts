@@ -5,6 +5,7 @@ export default defineConfig({
     environment: "node",
     globals: true,
     include: ["control-plane/src/**/*.test.ts"],
+    setupFiles: ["control-plane/src/helper/testCleanUp.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
