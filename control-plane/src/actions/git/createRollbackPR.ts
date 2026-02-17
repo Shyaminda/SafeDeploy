@@ -1,8 +1,6 @@
 import axios from "axios";
-import dotenv from "dotenv";
 import { config } from "../../config/index.js";
-
-dotenv.config();
+import { GitHubAPIError } from "./errors/errors.js";
 
 export async function createRollbackPR(
   branchName: string,
@@ -22,12 +20,53 @@ export async function createRollbackPR(
     },
   });
 
-  const response = await client.post("/pulls", {
-    title: prTitle,
-    head: branchName,
-    base: config.github.baseBranch,
-    body: prBody,
-  });
+  try {
+    const response = await client.post("/pulls", {
+      title: prTitle,
+      head: branchName,
+      base: config.github.baseBranch,
+      body: prBody,
+    });
 
-  return response.data.html_url;
+    return response.data.html_url;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const statusCode = error.response?.status;
+      const message = error.response?.data?.message || error.message;
+
+      if (statusCode === 401) {
+        throw new GitHubAPIError(
+          "/pulls",
+          "Authentication failed - check GITHUB_TOKEN",
+          statusCode,
+          error,
+        );
+      }
+      if (statusCode === 403) {
+        throw new GitHubAPIError(
+          "/pulls",
+          "Rate limit exceeded or insufficient permissions",
+          statusCode,
+          error,
+        );
+      }
+      if (statusCode === 422) {
+        throw new GitHubAPIError(
+          "/pulls",
+          `Validation failed: ${message}`,
+          statusCode,
+          error,
+        );
+      }
+
+      throw new GitHubAPIError("/pulls", message, statusCode, error);
+    }
+
+    throw new GitHubAPIError(
+      "/pulls",
+      "Unknown error creating pull request",
+      undefined,
+      error instanceof Error ? error : undefined,
+    );
+  }
 }
