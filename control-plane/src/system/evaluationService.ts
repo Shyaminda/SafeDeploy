@@ -1,12 +1,15 @@
 import { logger } from "../../../lib/logger.js";
 import { proposeRollback } from "../actions/proposeRollback.js";
+import { loadService } from "../catalog/catalogStore.js";
 import { evaluateBurnRate } from "../decisions/burnRate.js";
 import { explainBurnDecision } from "../decisions/explain.js";
 import { saveEvidence } from "../evidence/store.js";
+import { createPolicyViolationIncident } from "../helper/createPolicyViolation.js";
 import type { Incident } from "../incidents/incident.js";
 import { transitionIncident } from "../incidents/lifecycle.js";
 import { loadIncidents, saveIncident } from "../incidents/store.js";
 import { queryPrometheus } from "../observability/prometheus.js";
+import { evaluatePromotion } from "../policy/promotionGate.js";
 import { calculateErrorBudget } from "../slo/errorBudget.js";
 import { DEMO_APP_SLIS } from "../slo/sli.js";
 import { DEMO_APP_SLOS } from "../slo/slo.js";
@@ -143,5 +146,22 @@ export async function evaluateDemoService(): Promise<void> {
         message: `[INCIDENT] ${resolved.id} resolved`,
       });
     }
+  }
+  const service = loadService("demo-app");
+  const isBudgetHealthy = severity !== "fast-burn" && severity !== "exhausted";
+
+  const gate = evaluatePromotion(service, isBudgetHealthy);
+
+  if (!gate.allowed) {
+    logger.warn({
+      message: "[GOVERNANCE] Promotion blocked",
+      violations: gate.violations,
+    });
+
+    createPolicyViolationIncident(gate.violations);
+
+    // Optionally create policy violation incident here
+
+    return;
   }
 }
