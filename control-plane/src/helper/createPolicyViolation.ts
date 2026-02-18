@@ -1,0 +1,37 @@
+import { logger } from "../../../lib/logger.js";
+import { saveEvidence } from "../evidence/store.js";
+import type { Incident } from "../incidents/incident.js";
+import { transitionIncident } from "../incidents/lifecycle.js";
+import { saveIncident } from "../incidents/store.js";
+import type { PolicyViolation } from "../policy/policyTypes.js";
+
+export function createPolicyViolationIncident(
+  violations: PolicyViolation[],
+): void {
+  const incident: Incident = {
+    id: `incident-policy-${Date.now()}`,
+    service: violations[0]!.service,
+    severity: "policy-violation",
+    currentState: "detected",
+    timeline: [],
+    createdAt: new Date().toISOString(),
+  };
+
+  const investigating = transitionIncident(
+    incident,
+    "investigating",
+    JSON.stringify(violations),
+    "system",
+  );
+
+  saveIncident(investigating);
+
+  saveEvidence(investigating.id, "policy-violations.json", {
+    violations,
+    detectedAt: new Date().toISOString(),
+  });
+
+  logger.warn({
+    message: `[POLICY INCIDENT] ${investigating.id} created`,
+  });
+}
