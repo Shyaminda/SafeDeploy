@@ -39,7 +39,12 @@ export async function evaluateDemoService(): Promise<void> {
   const totalRequests = 10000;
   const badEvents = latencyMs > sloTarget ? 50 : 0;
 
-  const budget = calculateErrorBudget(0.999, totalRequests, badEvents, 1 / 30);
+  const budget = calculateErrorBudget(
+    sloTarget,
+    totalRequests,
+    badEvents,
+    1 / 30,
+  );
 
   const severity = evaluateBurnRate(
     budget.burnRate,
