@@ -150,15 +150,15 @@ export async function evaluateDemoService(): Promise<void> {
   const service = loadService("demo-app");
   const isBudgetHealthy = severity !== "fast-burn" && severity !== "exhausted";
 
-  const gate = evaluatePromotion(service, isBudgetHealthy);
+  const promotionGate = evaluatePromotion(service, isBudgetHealthy);
 
-  if (!gate.allowed) {
+  if (!promotionGate.allowed) {
     logger.warn({
       message: "[GOVERNANCE] Promotion blocked",
-      violations: gate.violations,
+      violations: promotionGate.violations,
     });
 
-    createPolicyViolationIncident(gate.violations);
+    createPolicyViolationIncident(promotionGate.violations);
 
     // Optionally create policy violation incident here
 
