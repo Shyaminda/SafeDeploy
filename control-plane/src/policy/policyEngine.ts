@@ -48,15 +48,14 @@ export function evaluateServicePolicies(
   }
 
   if (service.deploymentStrategy !== "canary") {
-  violations.push({
-    type: "no-canary-strategy",
-    service: service.name,
-    message: "Service must use canary deployment strategy",
-    blocking: true,
-    detectedAt: new Date().toISOString(),
-  });
-}
-
+    violations.push({
+      type: "no-canary-strategy",
+      service: service.name,
+      message: "Service must use canary deployment strategy",
+      blocking: true,
+      detectedAt: new Date().toISOString(),
+    });
+  }
 
   return violations;
 }

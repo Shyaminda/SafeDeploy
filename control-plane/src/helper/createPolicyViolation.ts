@@ -7,7 +7,7 @@ import type { PolicyViolation } from "../policy/policyTypes.js";
 
 export function createPolicyViolationIncident(
   violations: PolicyViolation[],
-): void {
+): Incident {
   const incident: Incident = {
     id: `incident-policy-${Date.now()}`,
     service: violations[0]!.service,
@@ -34,4 +34,6 @@ export function createPolicyViolationIncident(
   logger.warn({
     message: `[POLICY INCIDENT] ${investigating.id} created`,
   });
+
+  return investigating;
 }
