@@ -35,8 +35,12 @@ export async function evaluateDemoService(): Promise<void> {
       );
 
       const policyIncident = createPolicyViolationIncident(violations);
-
-      proposeBlockPromotion(policyIncident.id, "demo-app", violations);
+      proposeBlockPromotion(policyIncident.id, "demo-app", violations, {
+        total: 0,
+        remaining: 0,
+        burnRate: 0,
+        consumed: 0,
+      });
 
       return;
     }
@@ -47,35 +51,64 @@ export async function evaluateDemoService(): Promise<void> {
   const latencySLI = DEMO_APP_SLIS.find(
     (s) => s.name === "request_latency_p95",
   );
+
   if (!latencySLI) {
-    throw new Error("SLI 'request_latency_p95' not found");
+    throw new Error("Latency SLI not found");
   }
 
-  const latencyResult = await queryPrometheus(latencySLI.promQuery);
-
-  if (!latencyResult?.length) {
-    throw new Error("No metrics returned from Prometheus");
-  }
-
-  const latencyValue = Number(latencyResult[0].value[1]);
-  const latencyMs = latencyValue * 1000;
-
-  const latencySLO = DEMO_APP_SLOS.find((s) => s.name.includes("latency"));
+  const latencySLO = DEMO_APP_SLOS.find((s) => s.name === "latency-p95-300ms");
 
   if (!latencySLO) {
     throw new Error("Latency SLO not found");
   }
 
-  const sloTarget = latencySLO.target;
+  const latencyResult = await queryPrometheus(latencySLI.promQuery);
+  //const latencyResult = 0.1;
+
+  let latencyMs = 0;
+
+  if (!latencyResult) {
+    logger.warn({
+      message: "No latency metrics returned from Prometheus",
+    });
+  } else {
+    const latencyValue = Number(latencyResult[0].value[1]);
+    latencyMs = latencyValue * 1000;
+
+    logger.info({
+      message: `Observed latency p95 = ${latencyMs}ms`,
+    });
+  }
+
+  const availabilitySLO = DEMO_APP_SLOS.find(
+    (s) => s.name === "availability-99.9",
+  );
+
+  if (!availabilitySLO) {
+    throw new Error("Availability SLO not found");
+  }
 
   const totalRequests = 10000;
-  const badEvents = latencyMs > sloTarget ? 50 : 0;
+
+  let simulatedFailures = 0;
+
+  if (latencyMs > latencySLO.target) {
+    const degradationFactor = latencyMs / latencySLO.target;
+
+    if (degradationFactor > 2) {
+      simulatedFailures = 200;
+    } else if (degradationFactor > 1.5) {
+      simulatedFailures = 50;
+    } else {
+      simulatedFailures = 10;
+    }
+  }
 
   const budget = calculateErrorBudget(
-    sloTarget,
+    availabilitySLO.target,
     totalRequests,
-    badEvents,
-    1 / 30,
+    simulatedFailures,
+    1 / 6,
   );
 
   const severity = evaluateBurnRate(
@@ -86,18 +119,23 @@ export async function evaluateDemoService(): Promise<void> {
   const explanation = explainBurnDecision(severity);
 
   logger.info({
-    message: `[DECISION] severity=${severity} | reason=${explanation}`,
+    message: `[DECISION] availability severity=${severity} | reason=${explanation}`,
   });
 
-  const isBudgetHealthy = severity !== "fast-burn" && severity !== "exhausted";
-
-  const gate = evaluatePromotion(service, isBudgetHealthy);
+  const gate = evaluatePromotion(service, {
+    total: budget.total,
+    remaining: budget.remaining,
+    burnRate: budget.burnRate,
+  });
 
   if (!gate.allowed) {
     const policyIncident = createPolicyViolationIncident(gate.violations);
-
-    proposeBlockPromotion(policyIncident.id, "demo-app", gate.violations);
-
+    proposeBlockPromotion(
+      policyIncident.id,
+      "demo-app",
+      gate.violations,
+      budget,
+    );
     return;
   }
 
@@ -157,7 +195,7 @@ export async function evaluateDemoService(): Promise<void> {
       const resolved = transitionIncident(
         mitigatedIncident,
         "resolved",
-        "SLO returned to healthy state",
+        "Availability SLO returned to healthy state",
         "system",
       );
 

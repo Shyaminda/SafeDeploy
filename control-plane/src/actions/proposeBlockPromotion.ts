@@ -1,11 +1,13 @@
 import { loadProposals, saveProposal } from "./store.js";
 import type { ActionProposal } from "./proposal.js";
 import type { PolicyViolation } from "../policy/policyTypes.js";
+import type { ErrorBudget } from "../slo/errorBudget.js";
 
 export function proposeBlockPromotion(
   incidentId: string,
   service: string,
   violations: PolicyViolation[],
+  budget: ErrorBudget,
 ): ActionProposal {
   const existing = loadProposals().find(
     (p) =>
@@ -29,8 +31,8 @@ export function proposeBlockPromotion(
       explanation: "Promotion blocked due to policy violations",
       evidence: {
         slo: violations[0]?.type ?? "unknown",
-        burnRate: 0,
-        remainingBudget: 0,
+        burnRate: budget.burnRate,
+        remainingBudget: budget.remaining,
       },
     },
   };
