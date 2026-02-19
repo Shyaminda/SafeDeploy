@@ -18,10 +18,6 @@ import { DEMO_APP_SLOS } from "../slo/slo.js";
 import { mapZodIssuesToPolicyViolations } from "../policy/zodToPolicyMapper.js";
 
 export async function evaluateDemoService(): Promise<void> {
-  // =====================================================
-  // 1️⃣ LOAD & VALIDATE SERVICE FIRST (STRUCTURAL GOV)
-  // =====================================================
-
   let service;
 
   try {
@@ -47,10 +43,6 @@ export async function evaluateDemoService(): Promise<void> {
 
     throw error;
   }
-
-  // =====================================================
-  // 2️⃣ OBSERVABILITY + SLO
-  // =====================================================
 
   const latencySLI = DEMO_APP_SLIS.find(
     (s) => s.name === "request_latency_p95",
@@ -97,10 +89,6 @@ export async function evaluateDemoService(): Promise<void> {
     message: `[DECISION] severity=${severity} | reason=${explanation}`,
   });
 
-  // =====================================================
-  // 3️⃣ POLICY GATE (LOGICAL GOV)
-  // =====================================================
-
   const isBudgetHealthy = severity !== "fast-burn" && severity !== "exhausted";
 
   const gate = evaluatePromotion(service, isBudgetHealthy);
@@ -112,10 +100,6 @@ export async function evaluateDemoService(): Promise<void> {
 
     return;
   }
-
-  // =====================================================
-  // 4️⃣ OPERATIONAL INCIDENT LOOP
-  // =====================================================
 
   const incidents = loadIncidents();
 
