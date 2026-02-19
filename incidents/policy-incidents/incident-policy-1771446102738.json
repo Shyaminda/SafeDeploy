@@ -1,0 +1,16 @@
+{
+  "id": "incident-policy-1771446102738",
+  "service": "demo-app",
+  "severity": "policy-violation",
+  "currentState": "investigating",
+  "timeline": [
+    {
+      "from": "detected",
+      "to": "investigating",
+      "at": "2026-02-18T20:21:42.738Z",
+      "triggeredBy": "system",
+      "reason": "[{\"type\":\"error-budget-exhausted\",\"service\":\"demo-app\",\"message\":\"Error budget exhausted - promotion blocked\",\"blocking\":true,\"detectedAt\":\"2026-02-18T20:21:42.737Z\"}]"
+    }
+  ],
+  "createdAt": "2026-02-18T20:21:42.738Z"
+}

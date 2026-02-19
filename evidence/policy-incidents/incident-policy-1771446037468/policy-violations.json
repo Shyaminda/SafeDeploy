@@ -1,0 +1,12 @@
+{
+  "violations": [
+    {
+      "type": "missing-owner",
+      "service": "demo-app",
+      "message": "Invalid or missing field: owner",
+      "blocking": true,
+      "detectedAt": "2026-02-18T20:20:37.468Z"
+    }
+  ],
+  "detectedAt": "2026-02-18T20:20:37.469Z"
+}

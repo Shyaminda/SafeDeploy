@@ -1,0 +1,16 @@
+{
+  "id": "proposal-1771446102739",
+  "incidentId": "incident-policy-1771446102738",
+  "type": "block-promotion",
+  "createdAt": "2026-02-18T20:21:42.739Z",
+  "status": "proposed",
+  "justification": {
+    "severity": "policy-violation",
+    "explanation": "Promotion blocked due to policy violations",
+    "evidence": {
+      "slo": "error-budget-exhausted",
+      "burnRate": 0,
+      "remainingBudget": 0
+    }
+  }
+}
