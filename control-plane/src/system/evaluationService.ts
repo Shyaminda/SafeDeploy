@@ -1,4 +1,6 @@
+import { ZodError } from "zod";
 import { logger } from "../../../lib/logger.js";
+import { proposeBlockPromotion } from "../actions/proposeBlockPromotion.js";
 import { proposeRollback } from "../actions/proposeRollback.js";
 import { loadService } from "../catalog/catalogStore.js";
 import { evaluateBurnRate } from "../decisions/burnRate.js";
@@ -13,27 +15,65 @@ import { evaluatePromotion } from "../policy/promotionGate.js";
 import { calculateErrorBudget } from "../slo/errorBudget.js";
 import { DEMO_APP_SLIS } from "../slo/sli.js";
 import { DEMO_APP_SLOS } from "../slo/slo.js";
+import { mapZodIssuesToPolicyViolations } from "../policy/zodToPolicyMapper.js";
 
 export async function evaluateDemoService(): Promise<void> {
+  // =====================================================
+  // 1️⃣ LOAD & VALIDATE SERVICE FIRST (STRUCTURAL GOV)
+  // =====================================================
+
+  let service;
+
+  try {
+    service = loadService("demo-app");
+  } catch (error: unknown) {
+    if (error instanceof ZodError) {
+      logger.error({
+        message: "[GOVERNANCE] Catalog validation failed",
+        issues: error.issues,
+      });
+
+      const violations = mapZodIssuesToPolicyViolations(
+        error.issues,
+        "demo-app",
+      );
+
+      const policyIncident = createPolicyViolationIncident(violations);
+
+      proposeBlockPromotion(policyIncident.id, "demo-app", violations);
+
+      return;
+    }
+
+    throw error;
+  }
+
+  // =====================================================
+  // 2️⃣ OBSERVABILITY + SLO
+  // =====================================================
+
   const latencySLI = DEMO_APP_SLIS.find(
     (s) => s.name === "request_latency_p95",
   );
   if (!latencySLI) {
-    throw new Error("SLI 'request_latency_p95' not found in configuration");
+    throw new Error("SLI 'request_latency_p95' not found");
   }
 
   const latencyResult = await queryPrometheus(latencySLI.promQuery);
+
   if (!latencyResult?.length) {
-    throw new Error("No metrics data returned from Prometheus");
+    throw new Error("No metrics returned from Prometheus");
   }
 
   const latencyValue = Number(latencyResult[0].value[1]);
   const latencyMs = latencyValue * 1000;
 
   const latencySLO = DEMO_APP_SLOS.find((s) => s.name.includes("latency"));
+
   if (!latencySLO) {
-    throw new Error("SLO for latency not found in configuration");
+    throw new Error("Latency SLO not found");
   }
+
   const sloTarget = latencySLO.target;
 
   const totalRequests = 10000;
@@ -56,6 +96,26 @@ export async function evaluateDemoService(): Promise<void> {
   logger.info({
     message: `[DECISION] severity=${severity} | reason=${explanation}`,
   });
+
+  // =====================================================
+  // 3️⃣ POLICY GATE (LOGICAL GOV)
+  // =====================================================
+
+  const isBudgetHealthy = severity !== "fast-burn" && severity !== "exhausted";
+
+  const gate = evaluatePromotion(service, isBudgetHealthy);
+
+  if (!gate.allowed) {
+    const policyIncident = createPolicyViolationIncident(gate.violations);
+
+    proposeBlockPromotion(policyIncident.id, "demo-app", gate.violations);
+
+    return;
+  }
+
+  // =====================================================
+  // 4️⃣ OPERATIONAL INCIDENT LOOP
+  // =====================================================
 
   const incidents = loadIncidents();
 
@@ -83,10 +143,6 @@ export async function evaluateDemoService(): Promise<void> {
         "system",
       );
 
-      logger.info({
-        message: `[INCIDENT] ${investigating.id} transitioned to investigating`,
-      });
-
       saveIncident(investigating);
 
       saveEvidence(investigating.id, "decision.json", {
@@ -98,29 +154,10 @@ export async function evaluateDemoService(): Promise<void> {
         timestamp: new Date().toISOString(),
       });
 
-      saveEvidence(investigating.id, "slo.json", {
-        metric: "request_latency_p95",
-        observedLatencyMs: latencyMs,
-        targetMs: sloTarget,
-        timestamp: new Date().toISOString(),
-      });
-
-      saveEvidence(investigating.id, "budget.json", {
-        total: budget.total,
-        remaining: budget.remaining,
-        consumed: budget.consumed,
-        burnRate: budget.burnRate,
-        timestamp: new Date().toISOString(),
-      });
-
       if (severity === "exhausted") {
         proposeRollback(investigating, budget, explanation);
       }
     } else {
-      logger.info({
-        message: `[INCIDENT] ${activeIncident.id} already active — continuing investigation`,
-      });
-
       if (severity === "exhausted") {
         proposeRollback(activeIncident, budget, explanation);
       }
@@ -136,7 +173,7 @@ export async function evaluateDemoService(): Promise<void> {
       const resolved = transitionIncident(
         mitigatedIncident,
         "resolved",
-        "SLO returned to healthy state after mitigation",
+        "SLO returned to healthy state",
         "system",
       );
 
@@ -144,29 +181,7 @@ export async function evaluateDemoService(): Promise<void> {
 
       saveEvidence(resolved.id, "resolution.json", {
         resolvedAt: new Date().toISOString(),
-        reason: "SLO returned to healthy state after mitigation",
-      });
-
-      logger.info({
-        message: `[INCIDENT] ${resolved.id} resolved`,
       });
     }
-  }
-  const service = loadService("demo-app");
-  const isBudgetHealthy = severity !== "fast-burn" && severity !== "exhausted";
-
-  const promotionGate = evaluatePromotion(service, isBudgetHealthy);
-
-  if (!promotionGate.allowed) {
-    logger.warn({
-      message: "[GOVERNANCE] Promotion blocked",
-      violations: promotionGate.violations,
-    });
-
-    createPolicyViolationIncident(promotionGate.violations);
-
-    // Optionally create policy violation incident here
-
-    return;
   }
 }
