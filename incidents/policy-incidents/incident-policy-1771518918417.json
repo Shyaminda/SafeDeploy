@@ -1,0 +1,30 @@
+{
+  "id": "incident-policy-1771518918417",
+  "service": "demo-app",
+  "severity": "policy-violation",
+  "currentState": "resolved",
+  "timeline": [
+    {
+      "from": "detected",
+      "to": "investigating",
+      "at": "2026-02-19T16:35:18.417Z",
+      "triggeredBy": "system",
+      "reason": "[{\"type\":\"error-budget-exhausted\",\"service\":\"demo-app\",\"message\":\"Error budget exhausted - production freeze active\",\"blocking\":true,\"detectedAt\":\"2026-02-19T16:35:18.417Z\"},{\"type\":\"error-budget-exhausted\",\"service\":\"demo-app\",\"message\":\"Remaining budget below safety threshold (1%)\",\"blocking\":true,\"detectedAt\":\"2026-02-19T16:35:18.417Z\"},{\"type\":\"error-budget-exhausted\",\"service\":\"demo-app\",\"message\":\"Burn rate too high (119.9999999999999x) — risky to deploy\",\"blocking\":true,\"detectedAt\":\"2026-02-19T16:35:18.417Z\"}]"
+    },
+    {
+      "from": "investigating",
+      "to": "mitigated",
+      "at": "2026-02-19T16:37:49.600Z",
+      "triggeredBy": "user",
+      "reason": "Rollback PR created: https://github.com/Shyaminda/safeDeploy-environment/pull/13"
+    },
+    {
+      "from": "mitigated",
+      "to": "resolved",
+      "at": "2026-02-19T16:39:45.619Z",
+      "triggeredBy": "system",
+      "reason": "Availability SLO returned to healthy state"
+    }
+  ],
+  "createdAt": "2026-02-19T16:35:18.417Z"
+}
