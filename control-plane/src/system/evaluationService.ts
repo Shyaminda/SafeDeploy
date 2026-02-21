@@ -146,7 +146,11 @@ async function evaluateRuntimeHealth(): Promise<{
 
   let newIncidentCreated = false;
 
-  if (budget.remaining <= 0) {
+  if (
+    budget.remaining <= 0 &&
+    severity === "exhausted" &&
+    !activeIncident?.severity?.includes("policy")
+  ) {
     updateFreezeWindow("demo-app", 15 * 60 * 1000);
 
     if (!activeIncident) {
