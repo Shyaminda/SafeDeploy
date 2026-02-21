@@ -124,12 +124,12 @@ async function evaluateRuntimeHealth(): Promise<{
 
   let newIncidentCreated = false;
 
-  if (budget.remaining <= 0 && !activeIncident) {
-    newIncidentCreated = true;
-
+  if (budget.remaining <= 0) {
     updateFreezeWindow("demo-app", 15 * 60 * 1000);
 
     if (!activeIncident) {
+      newIncidentCreated = true;
+
       const incident: Incident = {
         id: `incident-${Date.now()}`,
         service: "demo-app",
