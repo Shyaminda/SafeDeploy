@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import type { ServiceHealthState } from "./serviceHealthState.js";
 
-const BASE = path.join(process.cwd(), "control-plane", "state");
+const BASE = path.join(process.cwd(), "control-plane", "state", "health");
 
 function getFilePath(service: string): string {
   return path.join(BASE, `${service}.json`);

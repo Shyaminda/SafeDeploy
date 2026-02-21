@@ -16,7 +16,11 @@ import { calculateErrorBudget, type ErrorBudget } from "../slo/errorBudget.js";
 import { DEMO_APP_SLIS } from "../slo/sli.js";
 import { DEMO_APP_SLOS } from "../slo/slo.js";
 import { mapZodIssuesToPolicyViolations } from "../policy/zodToPolicyMapper.js";
-import { loadServiceHealthState } from "../heath-state/store.js";
+import { loadServiceHealthState } from "../health-state/store.js";
+import { updateFreezeWindow } from "../helper/freezeWindow.js";
+import type { PolicyViolation } from "../policy/policyTypes.js";
+import { initializeOrRotateWindow } from "../helper/budgetWindow.js";
+import { saveBudgetWindow } from "../budget-state/budgetWindow.js";
 
 async function evaluateRuntimeHealth(): Promise<{
   budget: ErrorBudget;
@@ -59,12 +63,43 @@ async function evaluateRuntimeHealth(): Promise<{
     else simulatedFailures = 10;
   }
 
-  const budget = calculateErrorBudget(
-    availabilitySLO.target,
-    totalRequests,
-    simulatedFailures,
-    1 / 6,
+  // After simulatedFailures is calculated
+
+  // ======================================================
+  // Rolling Budget Window Logic (Persistent 30-day SLO)
+  // ======================================================
+
+  const allowedBadEvents = totalRequests * (1 - availabilitySLO.target);
+
+  const windowDurationMs = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+  const window = initializeOrRotateWindow(
+    "demo-app",
+    allowedBadEvents,
+    windowDurationMs,
   );
+
+  // Failures detected this cycle
+  const cycleFailures = simulatedFailures;
+
+  window.consumedSoFar += cycleFailures;
+
+  if (window.consumedSoFar > window.allowed) {
+    window.consumedSoFar = window.allowed;
+  }
+
+  saveBudgetWindow(window);
+
+  const remainingBudget = window.allowed - window.consumedSoFar;
+
+  const burnRate = window.consumedSoFar / (window.allowed * (1 / 6));
+
+  const budget: ErrorBudget = {
+    total: window.allowed,
+    remaining: remainingBudget,
+    burnRate,
+    consumed: window.consumedSoFar,
+  };
 
   const severity = evaluateBurnRate(
     budget.burnRate,
@@ -91,8 +126,10 @@ async function evaluateRuntimeHealth(): Promise<{
 
   let newIncidentCreated = false;
 
-  if (severity === "exhausted") {
+  if (budget.remaining <= 0 && !activeIncident) {
     newIncidentCreated = true;
+
+    updateFreezeWindow("demo-app", 15 * 60 * 1000);
 
     if (!activeIncident) {
       const incident: Incident = {
@@ -151,7 +188,7 @@ function evaluatePromotionEligibility(service: any, budget: ErrorBudget) {
 
   const state = loadServiceHealthState("demo-app");
 
-  const violations = [];
+  const violations: PolicyViolation[] = [];
 
   const remainingRatio = budget.total > 0 ? budget.remaining / budget.total : 0;
 
@@ -199,14 +236,26 @@ function evaluatePromotionEligibility(service: any, budget: ErrorBudget) {
   });
 
   if (!gate.allowed) {
-    const policyIncident = createPolicyViolationIncident(gate.violations);
+    violations.push(...gate.violations);
+  }
 
-    proposeBlockPromotion(
-      policyIncident.id,
-      "demo-app",
-      gate.violations,
-      budget,
-    );
+  const existingPolicyIncident = loadIncidents().find(
+    (i) =>
+      i.service === "demo-app" &&
+      i.severity === "policy-violation" &&
+      !["resolved", "postmortem-complete"].includes(i.currentState),
+  );
+
+  // If any violations exist → create policy incident
+  if (violations.length > 0 && !existingPolicyIncident) {
+    logger.warn({
+      message: "Governance blocking promotion",
+      violations,
+    });
+
+    const policyIncident = createPolicyViolationIncident(violations);
+
+    proposeBlockPromotion(policyIncident.id, "demo-app", violations, budget);
   }
 }
 

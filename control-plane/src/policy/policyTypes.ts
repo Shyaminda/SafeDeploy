@@ -4,7 +4,9 @@ export type PolicyViolationType =
   | "missing-rollback-strategy"
   | "no-canary-strategy"
   | "error-budget-exhausted"
-  | "restricted-window";
+  | "restricted-window"
+  | "error-budget-near-exhaustion"
+  | "freeze-window-active";
 
 export interface PolicyViolation {
   type: PolicyViolationType;
