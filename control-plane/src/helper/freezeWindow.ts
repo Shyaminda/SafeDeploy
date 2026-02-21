@@ -1,8 +1,8 @@
-import type { ServiceHealthState } from "../state/serviceHealthState.js";
+import type { ServiceHealthState } from "../heath-state/serviceHealthState.js";
 import {
   loadServiceHealthState,
   saveServiceHealthState,
-} from "../state/store.js";
+} from "../heath-state/store.js";
 
 export function updateFreezeWindow(
   service: string,
