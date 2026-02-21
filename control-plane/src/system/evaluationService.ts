@@ -25,6 +25,7 @@ import type { PolicyViolation } from "../policy/policyTypes.js";
 import { initializeOrRotateWindow } from "../helper/budgetWindow.js";
 import { saveBudgetWindow } from "../budget-state/budgetWindow.js";
 import type { ServiceDefinition } from "../catalog/serviceDefinition.js";
+import { writeAudit } from "../audit/store.js";
 
 async function evaluateRuntimeHealth(): Promise<{
   budget: ErrorBudget;
@@ -68,6 +69,14 @@ async function evaluateRuntimeHealth(): Promise<{
     else if (factor > 1.5) simulatedFailures = 50;
     else simulatedFailures = 10;
   }
+
+  writeAudit("metrics", `latency-${Date.now()}.json`, {
+    service: "demo-app",
+    metric: "request_latency_p95",
+    observedLatencyMs: latencyMs,
+    targetMs: latencySLO.target,
+    timestamp: new Date().toISOString(),
+  });
 
   const allowedBadEvents = totalRequests * (1 - availabilitySLO.target);
 
@@ -121,6 +130,16 @@ async function evaluateRuntimeHealth(): Promise<{
     totalBudget: budget.total,
   });
 
+  writeAudit("budget", `budget-${Date.now()}.json`, {
+    service: "demo-app",
+    total: budget.total,
+    remaining: budget.remaining,
+    consumed: budget.consumed,
+    burnRate: budget.burnRate,
+    freezeUntil: loadServiceHealthState("demo-app")?.freezeUntil,
+    timestamp: new Date().toISOString(),
+  });
+
   const incidents = loadIncidents();
   const activeIncident = incidents.find(
     (i) =>
@@ -154,6 +173,8 @@ async function evaluateRuntimeHealth(): Promise<{
 
       saveIncident(investigating);
 
+      writeAudit("incidents", `${investigating.id}.json`, investigating);
+
       saveEvidence(investigating.id, "budget-snapshot.json", {
         totalBudget: budget.total,
         remainingBudget: budget.remaining,
@@ -181,6 +202,8 @@ async function evaluateRuntimeHealth(): Promise<{
       );
 
       saveIncident(resolved);
+
+      writeAudit("incidents", `${resolved.id}-resolved.json`, resolved);
     }
   }
 
@@ -259,6 +282,14 @@ function evaluatePromotionEligibility(
       violations,
     });
 
+    writeAudit("governance", `governance-${Date.now()}.json`, {
+      service: service.name,
+      violations,
+      freezeActive: Boolean(state?.freezeUntil),
+      budgetRemaining: budget.remaining,
+      timestamp: new Date().toISOString(),
+    });
+
     if (!existingPolicyIncident) {
       const policyIncident = createPolicyViolationIncident(violations);
       proposeBlockPromotion(
@@ -268,6 +299,17 @@ function evaluatePromotionEligibility(
         budget,
       );
     }
+  }
+
+  if (violations.length === 0) {
+    writeAudit("governance", `governance-${Date.now()}.json`, {
+      service: service.name,
+      violations: [],
+      freezeActive: Boolean(state?.freezeUntil),
+      budgetRemaining: budget.remaining,
+      decision: "allowed",
+      timestamp: new Date().toISOString(),
+    });
   }
 }
 

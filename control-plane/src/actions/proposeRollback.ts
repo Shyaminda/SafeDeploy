@@ -1,4 +1,5 @@
 import { logger } from "../../../lib/logger.js";
+import { writeAudit } from "../audit/store.js";
 import { saveEvidence } from "../evidence/store.js";
 import type { Incident } from "../incidents/incident.js";
 import type { ErrorBudget } from "../slo/errorBudget.js";
@@ -44,6 +45,8 @@ export function proposeRollback(
   };
 
   saveProposal(proposal);
+
+  writeAudit("proposals", `${proposal.id}.json`, proposal);
 
   saveEvidence(proposal.incidentId, "proposal.json", proposal);
 

@@ -2,6 +2,7 @@ import { loadProposals, saveProposal } from "./store.js";
 import type { ActionProposal } from "./proposal.js";
 import type { PolicyViolation } from "../policy/policyTypes.js";
 import type { ErrorBudget } from "../slo/errorBudget.js";
+import { writeAudit } from "../audit/store.js";
 
 export function proposeBlockPromotion(
   incidentId: string,
@@ -38,6 +39,8 @@ export function proposeBlockPromotion(
   };
 
   saveProposal(proposal);
+
+  writeAudit("proposals", `${proposal.id}.json`, proposal);
 
   return proposal;
 }
