@@ -1,8 +1,0 @@
-{
-  "burnRate": 149.99999999999986,
-  "remainingBudget": 0,
-  "totalBudget": 10.000000000000009,
-  "severity": "exhausted",
-  "explanation": "Error budget exhausted; service is operating outside SLO.",
-  "timestamp": "2026-02-16T16:38:24.895Z"
-}
