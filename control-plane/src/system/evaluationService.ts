@@ -105,7 +105,12 @@ async function evaluateRuntimeHealth(): Promise<{
 
   const severity = evaluateBurnRate(instantBurnRate);
 
-  const explanation = explainBurnDecision(severity);
+  let explanation = explainBurnDecision(severity);
+
+  if (severity === "normal" && budget.remaining <= 0) {
+    explanation =
+      "Current SLI healthy, but error budget exhausted (SLO violated).";
+  }
 
   logger.info({
     message: explanation,

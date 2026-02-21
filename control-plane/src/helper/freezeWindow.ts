@@ -15,7 +15,6 @@ export function updateFreezeWindow(
 
   let freezeUntil = proposedFreezeUntil;
 
-  // If a freeze already exists and is longer → keep the longer one
   if (existing?.freezeUntil) {
     const existingTime = new Date(existing.freezeUntil).getTime();
     const proposedTime = new Date(proposedFreezeUntil).getTime();
@@ -28,7 +27,9 @@ export function updateFreezeWindow(
   const updated: ServiceHealthState = {
     service,
     lastEvaluatedAt: new Date().toISOString(),
-    lastExhaustedAt: new Date().toISOString(),
+
+    lastExhaustedAt: existing?.lastExhaustedAt ?? new Date().toISOString(),
+
     freezeUntil,
   };
 
