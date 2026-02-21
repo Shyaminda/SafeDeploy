@@ -24,6 +24,7 @@ import {
 import type { PolicyViolation } from "../policy/policyTypes.js";
 import { initializeOrRotateWindow } from "../helper/budgetWindow.js";
 import { saveBudgetWindow } from "../budget-state/budgetWindow.js";
+import type { ServiceDefinition } from "../catalog/serviceDefinition.js";
 
 async function evaluateRuntimeHealth(): Promise<{
   budget: ErrorBudget;
@@ -181,10 +182,13 @@ async function evaluateRuntimeHealth(): Promise<{
   return { budget, newIncidentCreated };
 }
 
-function evaluatePromotionEligibility(service: any, budget: ErrorBudget) {
+function evaluatePromotionEligibility(
+  service: ServiceDefinition,
+  budget: ErrorBudget,
+): void {
   const now = new Date();
 
-  const state = loadServiceHealthState("demo-app");
+  const state = loadServiceHealthState(service.name);
 
   const violations: PolicyViolation[] = [];
 
@@ -194,7 +198,7 @@ function evaluatePromotionEligibility(service: any, budget: ErrorBudget) {
   if (budget.remaining <= 0) {
     violations.push({
       type: "error-budget-exhausted",
-      service: "demo-app",
+      service: service.name,
       message: "No remaining error budget — SLO contract violated.",
       blocking: true,
       detectedAt: new Date().toISOString(),
@@ -205,7 +209,7 @@ function evaluatePromotionEligibility(service: any, budget: ErrorBudget) {
   if (remainingRatio > 0 && remainingRatio < 0.05) {
     violations.push({
       type: "error-budget-near-exhaustion",
-      service: "demo-app",
+      service: service.name,
       message: "Remaining budget below 5% safety threshold.",
       blocking: true,
       detectedAt: new Date().toISOString(),
@@ -219,7 +223,7 @@ function evaluatePromotionEligibility(service: any, budget: ErrorBudget) {
     if (freezeTime > now.getTime()) {
       violations.push({
         type: "freeze-window-active",
-        service: "demo-app",
+        service: service.name,
         message: `Promotion frozen until ${state.freezeUntil}`,
         blocking: true,
         detectedAt: new Date().toISOString(),
@@ -239,7 +243,7 @@ function evaluatePromotionEligibility(service: any, budget: ErrorBudget) {
 
   const existingPolicyIncident = loadIncidents().find(
     (i) =>
-      i.service === "demo-app" &&
+      i.service === service.name &&
       i.severity === "policy-violation" &&
       !["resolved", "postmortem-complete"].includes(i.currentState),
   );
@@ -252,7 +256,12 @@ function evaluatePromotionEligibility(service: any, budget: ErrorBudget) {
 
     if (!existingPolicyIncident) {
       const policyIncident = createPolicyViolationIncident(violations);
-      proposeBlockPromotion(policyIncident.id, "demo-app", violations, budget);
+      proposeBlockPromotion(
+        policyIncident.id,
+        service.name,
+        violations,
+        budget,
+      );
     }
   }
 }
