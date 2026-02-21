@@ -3,7 +3,7 @@ import { loadIncidents, saveIncident } from "../incidents/store.js";
 import { transitionIncident } from "../incidents/lifecycle.js";
 import { prepareRollbackCommit } from "../actions/git/prepareRollbackCommit.js";
 import { createRollbackPR } from "../actions/git/createRollbackPR.js";
-import { saveEvidence } from "../evidence/store.js";
+import { appendAudit } from "../audit/store.js";
 
 export async function handleProposalApproval(
   proposalId: string,
@@ -14,10 +14,12 @@ export async function handleProposalApproval(
     return;
   }
 
-  saveEvidence(proposal.incidentId, "approval.json", {
+  appendAudit("proposals", {
+    type: "proposal-approved",
     proposalId: proposal.id,
-    approvedAt: new Date().toISOString(),
+    incidentId: proposal.incidentId,
     approvedBy: "user",
+    timestamp: new Date().toISOString(),
   });
 
   const incidents = loadIncidents();
@@ -53,4 +55,12 @@ export async function handleProposalApproval(
   );
 
   saveIncident(mitigated);
+
+  appendAudit("proposals", {
+    type: "proposal-approved",
+    proposalId: proposal.id,
+    incidentId: proposal.incidentId,
+    approvedBy: "user",
+    timestamp: new Date().toISOString(),
+  });
 }

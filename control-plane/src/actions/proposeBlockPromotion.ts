@@ -2,7 +2,7 @@ import { loadProposals, saveProposal } from "./store.js";
 import type { ActionProposal } from "./proposal.js";
 import type { PolicyViolation } from "../policy/policyTypes.js";
 import type { ErrorBudget } from "../slo/errorBudget.js";
-import { writeAudit } from "../audit/store.js";
+import { appendAudit } from "../audit/store.js";
 
 export function proposeBlockPromotion(
   incidentId: string,
@@ -18,6 +18,13 @@ export function proposeBlockPromotion(
   );
 
   if (existing) {
+    appendAudit("proposals", {
+      type: "proposal-reused",
+      proposalId: existing.id,
+      incidentId,
+      action: existing.type,
+    });
+
     return existing;
   }
 
@@ -40,7 +47,15 @@ export function proposeBlockPromotion(
 
   saveProposal(proposal);
 
-  writeAudit("proposals", `${proposal.id}.json`, proposal);
+  appendAudit("proposals", {
+    type: "proposal-created",
+    proposalId: proposal.id,
+    incidentId: proposal.incidentId,
+    service: service,
+    action: proposal.type,
+    status: proposal.status,
+    justification: proposal.justification,
+  });
 
   return proposal;
 }

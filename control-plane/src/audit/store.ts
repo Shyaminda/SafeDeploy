@@ -3,14 +3,18 @@ import path from "path";
 
 const BASE = path.join(process.cwd(), "control-plane", "audit");
 
-export function writeAudit(
+export function appendAudit(
   domain: string,
-  fileName: string,
-  payload: unknown,
+  event: Record<string, unknown>,
 ): void {
-  const dir = path.join(BASE, domain);
-  fs.mkdirSync(dir, { recursive: true });
+  fs.mkdirSync(BASE, { recursive: true });
 
-  const file = path.join(dir, fileName);
-  fs.writeFileSync(file, JSON.stringify(payload, null, 2));
+  const filePath = path.join(BASE, `${domain}.log`);
+
+  const entry = {
+    timestamp: new Date().toISOString(),
+    ...event,
+  };
+
+  fs.appendFileSync(filePath, JSON.stringify(entry) + "\n");
 }
