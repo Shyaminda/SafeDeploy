@@ -16,6 +16,7 @@ import { calculateErrorBudget, type ErrorBudget } from "../slo/errorBudget.js";
 import { DEMO_APP_SLIS } from "../slo/sli.js";
 import { DEMO_APP_SLOS } from "../slo/slo.js";
 import { mapZodIssuesToPolicyViolations } from "../policy/zodToPolicyMapper.js";
+import { loadServiceHealthState } from "../heath-state/store.js";
 
 async function evaluateRuntimeHealth(): Promise<{
   budget: ErrorBudget;
@@ -145,7 +146,52 @@ async function evaluateRuntimeHealth(): Promise<{
   return { budget, newIncidentCreated };
 }
 
-function evaluatePromotionEligibility(service: any, budget: any) {
+function evaluatePromotionEligibility(service: any, budget: ErrorBudget) {
+  const now = new Date();
+
+  const state = loadServiceHealthState("demo-app");
+
+  const violations = [];
+
+  const remainingRatio = budget.total > 0 ? budget.remaining / budget.total : 0;
+
+  // HARD STOP — Exhaustion
+  if (budget.remaining <= 0) {
+    violations.push({
+      type: "error-budget-exhausted",
+      service: "demo-app",
+      message: "No remaining error budget — SLO contract violated.",
+      blocking: true,
+      detectedAt: new Date().toISOString(),
+    });
+  }
+
+  // SOFT FREEZE — <5% remaining
+  if (remainingRatio > 0 && remainingRatio < 0.05) {
+    violations.push({
+      type: "error-budget-near-exhaustion",
+      service: "demo-app",
+      message: "Remaining budget below 5% safety threshold.",
+      blocking: true,
+      detectedAt: new Date().toISOString(),
+    });
+  }
+
+  // TIME-BASED FREEZE
+  if (state?.freezeUntil) {
+    const freezeTime = new Date(state.freezeUntil).getTime();
+
+    if (freezeTime > now.getTime()) {
+      violations.push({
+        type: "freeze-window-active",
+        service: "demo-app",
+        message: `Promotion frozen until ${state.freezeUntil}`,
+        blocking: true,
+        detectedAt: new Date().toISOString(),
+      });
+    }
+  }
+
   const gate = evaluatePromotion(service, {
     total: budget.total,
     remaining: budget.remaining,
