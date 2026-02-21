@@ -9,33 +9,46 @@ export function updateFreezeWindow(
   freezeDurationMs: number,
 ): void {
   const now = Date.now();
-
   const existing = loadServiceHealthState(service);
 
-  const newFreezeUntil = new Date(now + freezeDurationMs).toISOString();
+  const proposedFreezeUntil = new Date(now + freezeDurationMs).toISOString();
 
-  let freezeUntil = newFreezeUntil;
+  let freezeUntil = proposedFreezeUntil;
 
-  // prevent shortening freeze window
+  // If a freeze already exists and is longer → keep the longer one
   if (existing?.freezeUntil) {
     const existingTime = new Date(existing.freezeUntil).getTime();
+    const proposedTime = new Date(proposedFreezeUntil).getTime();
 
-    if (existingTime > now) {
-      // keep longer freeze
-      freezeUntil =
-        existingTime > now + freezeDurationMs
-          ? existing.freezeUntil
-          : newFreezeUntil;
+    if (existingTime > proposedTime) {
+      freezeUntil = existing.freezeUntil;
     }
   }
 
-  const state: ServiceHealthState = {
+  const updated: ServiceHealthState = {
     service,
-    status: "frozen",
     lastEvaluatedAt: new Date().toISOString(),
-    lastExhaustedAt: existing?.lastExhaustedAt ?? new Date().toISOString(),
+    lastExhaustedAt: new Date().toISOString(),
     freezeUntil,
   };
 
-  saveServiceHealthState(state);
+  saveServiceHealthState(updated);
+}
+
+export function unfreezeIfExpired(service: string): void {
+  const state = loadServiceHealthState(service);
+  if (!state?.freezeUntil) return;
+
+  const now = Date.now();
+  const freezeTime = new Date(state.freezeUntil).getTime();
+
+  if (freezeTime <= now) {
+    const updated: ServiceHealthState = {
+      service: state.service,
+      lastEvaluatedAt: new Date().toISOString(),
+      lastExhaustedAt: state.lastExhaustedAt,
+    };
+
+    saveServiceHealthState(updated);
+  }
 }

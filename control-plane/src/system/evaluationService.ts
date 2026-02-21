@@ -17,7 +17,10 @@ import { DEMO_APP_SLIS } from "../slo/sli.js";
 import { DEMO_APP_SLOS } from "../slo/slo.js";
 import { mapZodIssuesToPolicyViolations } from "../policy/zodToPolicyMapper.js";
 import { loadServiceHealthState } from "../health-state/store.js";
-import { updateFreezeWindow } from "../helper/freezeWindow.js";
+import {
+  unfreezeIfExpired,
+  updateFreezeWindow,
+} from "../helper/freezeWindow.js";
 import type { PolicyViolation } from "../policy/policyTypes.js";
 import { initializeOrRotateWindow } from "../helper/budgetWindow.js";
 import { saveBudgetWindow } from "../budget-state/budgetWindow.js";
@@ -26,6 +29,8 @@ async function evaluateRuntimeHealth(): Promise<{
   budget: ErrorBudget;
   newIncidentCreated: boolean;
 }> {
+  unfreezeIfExpired("demo-app");
+
   const latencySLI = DEMO_APP_SLIS.find(
     (s) => s.name === "request_latency_p95",
   );
@@ -63,12 +68,6 @@ async function evaluateRuntimeHealth(): Promise<{
     else simulatedFailures = 10;
   }
 
-  // After simulatedFailures is calculated
-
-  // ======================================================
-  // Rolling Budget Window Logic (Persistent 30-day SLO)
-  // ======================================================
-
   const allowedBadEvents = totalRequests * (1 - availabilitySLO.target);
 
   const windowDurationMs = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -92,10 +91,8 @@ async function evaluateRuntimeHealth(): Promise<{
 
   const remainingBudget = window.allowed - window.consumedSoFar;
 
-  // instantaneous burn (this evaluation cycle)
   const instantBurnRate = cycleFailures / (window.allowed * (1 / 6));
 
-  // cumulative burn (governance view)
   const cumulativeBurnRate = window.consumedSoFar / (window.allowed * (1 / 6));
 
   const budget: ErrorBudget = {
