@@ -1,0 +1,16 @@
+{
+  "id": "incident-policy-1771691957339",
+  "service": "demo-app",
+  "severity": "policy-violation",
+  "currentState": "investigating",
+  "timeline": [
+    {
+      "from": "detected",
+      "to": "investigating",
+      "at": "2026-02-21T16:39:17.340Z",
+      "triggeredBy": "system",
+      "reason": "[{\"type\":\"error-budget-exhausted\",\"service\":\"demo-app\",\"message\":\"No remaining error budget — SLO contract violated.\",\"blocking\":true,\"detectedAt\":\"2026-02-21T16:39:17.338Z\"},{\"type\":\"error-budget-exhausted\",\"service\":\"demo-app\",\"message\":\"Error budget exhausted - production freeze active\",\"blocking\":true,\"detectedAt\":\"2026-02-21T16:39:17.339Z\"},{\"type\":\"error-budget-exhausted\",\"service\":\"demo-app\",\"message\":\"Remaining budget below safety threshold (1%)\",\"blocking\":true,\"detectedAt\":\"2026-02-21T16:39:17.339Z\"},{\"type\":\"error-budget-exhausted\",\"service\":\"demo-app\",\"message\":\"Burn rate too high (6x) — risky to deploy\",\"blocking\":true,\"detectedAt\":\"2026-02-21T16:39:17.339Z\"}]"
+    }
+  ],
+  "createdAt": "2026-02-21T16:39:17.339Z"
+}
