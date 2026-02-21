@@ -12,7 +12,7 @@ import { transitionIncident } from "../incidents/lifecycle.js";
 import { loadIncidents, saveIncident } from "../incidents/store.js";
 import { queryPrometheus } from "../observability/prometheus.js";
 import { evaluatePromotion } from "../policy/promotionGate.js";
-import { calculateErrorBudget, type ErrorBudget } from "../slo/errorBudget.js";
+import { type ErrorBudget } from "../slo/errorBudget.js";
 import { DEMO_APP_SLIS } from "../slo/sli.js";
 import { DEMO_APP_SLOS } from "../slo/slo.js";
 import { mapZodIssuesToPolicyViolations } from "../policy/zodToPolicyMapper.js";
@@ -92,19 +92,20 @@ async function evaluateRuntimeHealth(): Promise<{
 
   const remainingBudget = window.allowed - window.consumedSoFar;
 
-  const burnRate = window.consumedSoFar / (window.allowed * (1 / 6));
+  // instantaneous burn (this evaluation cycle)
+  const instantBurnRate = cycleFailures / (window.allowed * (1 / 6));
+
+  // cumulative burn (governance view)
+  const cumulativeBurnRate = window.consumedSoFar / (window.allowed * (1 / 6));
 
   const budget: ErrorBudget = {
     total: window.allowed,
     remaining: remainingBudget,
-    burnRate,
+    burnRate: cumulativeBurnRate,
     consumed: window.consumedSoFar,
   };
 
-  const severity = evaluateBurnRate(
-    budget.burnRate,
-    budget.remaining / budget.total,
-  );
+  const severity = evaluateBurnRate(instantBurnRate);
 
   const explanation = explainBurnDecision(severity);
 
@@ -126,7 +127,7 @@ async function evaluateRuntimeHealth(): Promise<{
 
   let newIncidentCreated = false;
 
-  if (budget.remaining <= 0 && !activeIncident) {
+  if (severity === "exhausted" && !activeIncident) {
     newIncidentCreated = true;
 
     updateFreezeWindow("demo-app", 15 * 60 * 1000);
@@ -246,16 +247,16 @@ function evaluatePromotionEligibility(service: any, budget: ErrorBudget) {
       !["resolved", "postmortem-complete"].includes(i.currentState),
   );
 
-  // If any violations exist → create policy incident
-  if (violations.length > 0 && !existingPolicyIncident) {
+  if (violations.length > 0) {
     logger.warn({
       message: "Governance blocking promotion",
       violations,
     });
 
-    const policyIncident = createPolicyViolationIncident(violations);
-
-    proposeBlockPromotion(policyIncident.id, "demo-app", violations, budget);
+    if (!existingPolicyIncident) {
+      const policyIncident = createPolicyViolationIncident(violations);
+      proposeBlockPromotion(policyIncident.id, "demo-app", violations, budget);
+    }
   }
 }
 

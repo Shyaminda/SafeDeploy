@@ -4,19 +4,16 @@ export type BurnRateSeverity =
   | "fast-burn"
   | "exhausted";
 
-export function evaluateBurnRate(
-  burnRate: number,
-  remainingBudgetRatio: number,
-): BurnRateSeverity {
-  if (remainingBudgetRatio <= 0) {
+export function evaluateBurnRate(instantBurnRate: number): BurnRateSeverity {
+  if (instantBurnRate > 4) {
     return "exhausted";
   }
 
-  if (burnRate > 2) {
+  if (instantBurnRate > 2) {
     return "fast-burn";
   }
 
-  if (burnRate > 1) {
+  if (instantBurnRate > 1) {
     return "slow-burn";
   }
 
