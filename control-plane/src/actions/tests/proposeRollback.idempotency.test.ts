@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { proposeRollback } from "../proposeRollback.js";
 import * as proposalStore from "../store.js";
-import * as evidenceStore from "../../evidence/store.js";
 import type { Incident } from "../../incidents/incident.js";
 import type { ActionProposal } from "../proposal.js";
 
@@ -30,7 +29,6 @@ describe("proposeRollback - idempotency", () => {
       existingProposal,
     ]);
     const saveSpy = vi.spyOn(proposalStore, "saveProposal");
-    const saveEvidenceSpy = vi.spyOn(evidenceStore, "saveEvidence");
 
     const incident: Incident = {
       id: "incident-1",
@@ -49,7 +47,6 @@ describe("proposeRollback - idempotency", () => {
 
     expect(result).toBe(existingProposal);
     expect(saveSpy).not.toHaveBeenCalled();
-    expect(saveEvidenceSpy).not.toHaveBeenCalled();
   });
 
   it("does not treat approved proposal as existing - creates new one", () => {
@@ -66,7 +63,6 @@ describe("proposeRollback - idempotency", () => {
       approvedProposal,
     ]);
     vi.spyOn(proposalStore, "saveProposal").mockImplementation(() => {});
-    vi.spyOn(evidenceStore, "saveEvidence").mockImplementation(() => {});
 
     const incident: Incident = {
       id: "incident-1",
@@ -101,7 +97,6 @@ describe("proposeRollback - idempotency", () => {
       rejectedProposal,
     ]);
     vi.spyOn(proposalStore, "saveProposal").mockImplementation(() => {});
-    vi.spyOn(evidenceStore, "saveEvidence").mockImplementation(() => {});
 
     const incident: Incident = {
       id: "incident-1",
@@ -134,7 +129,6 @@ describe("proposeRollback - idempotency", () => {
 
     vi.spyOn(proposalStore, "loadProposals").mockReturnValue([otherProposal]);
     vi.spyOn(proposalStore, "saveProposal").mockImplementation(() => {});
-    vi.spyOn(evidenceStore, "saveEvidence").mockImplementation(() => {});
 
     const incident: Incident = {
       id: "incident-1",

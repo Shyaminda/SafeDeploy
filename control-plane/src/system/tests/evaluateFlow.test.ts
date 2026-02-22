@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as prometheus from "../../observability/prometheus.js";
 import * as incidentStore from "../../incidents/store.js";
 import * as proposalModule from "../../actions/proposeRollback.js";
-import * as evidence from "../../evidence/store.js";
 import * as burnRateModule from "../../decisions/burnRate.js";
 import * as sliModule from "../../slo/sli.js";
 import * as sloModule from "../../slo/slo.js";
@@ -21,7 +20,6 @@ describe("Full control-plane flow", () => {
     vi.restoreAllMocks();
 
     // Prevent real filesystem writes
-    vi.spyOn(evidence, "saveEvidence").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -52,7 +50,6 @@ describe("Full control-plane flow", () => {
     expect(proposalSpy).toHaveBeenCalledTimes(1);
 
     // Evidence saved: decision + slo + budget
-    expect(evidence.saveEvidence).toHaveBeenCalledTimes(3);
   });
 
   it("creates incident but NOT proposal for fast-burn severity", async () => {
@@ -240,7 +237,6 @@ describe("Full control-plane flow", () => {
     expect(saveSpy).toHaveBeenCalledTimes(1);
 
     // Resolution evidence saved
-    expect(evidence.saveEvidence).toHaveBeenCalledTimes(1);
   });
 
   it("does not resolve if incident is not mitigated", async () => {

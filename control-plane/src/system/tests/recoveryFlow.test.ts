@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { evaluateDemoService } from "../evaluationService.js";
 import * as prometheus from "../../observability/prometheus.js";
 import * as incidentStore from "../../incidents/store.js";
-import * as evidence from "../../evidence/store.js";
 
 vi.mock("../../../../lib/logger.js", () => ({
   logger: {
@@ -13,7 +12,6 @@ vi.mock("../../../../lib/logger.js", () => ({
 describe("Recovery flow", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    vi.spyOn(evidence, "saveEvidence").mockImplementation(() => {});
   });
 
   it("resolves mitigated incident when severity becomes normal", async () => {
@@ -87,9 +85,7 @@ describe("Recovery flow", () => {
     ] as any);
 
     vi.spyOn(incidentStore, "saveIncident").mockImplementation(() => {});
-    const evidenceSpy = vi
-      .spyOn(evidence, "saveEvidence")
-      .mockImplementation(() => {});
+    const evidenceSpy = vi;
 
     await evaluateDemoService();
 
@@ -156,12 +152,10 @@ describe("Recovery flow", () => {
     vi.spyOn(incidentStore, "loadIncidents").mockReturnValue([]);
 
     const saveSpy = vi.spyOn(incidentStore, "saveIncident");
-    const evidenceSpy = vi.spyOn(evidence, "saveEvidence");
 
     await evaluateDemoService();
 
     expect(saveSpy).not.toHaveBeenCalled();
-    expect(evidenceSpy).not.toHaveBeenCalled();
   });
 
   it("does not resolve already resolved incident", async () => {

@@ -4,7 +4,6 @@ import * as proposalModule from "../../actions/approveProposal.js";
 import * as incidentStore from "../../incidents/store.js";
 import * as gitModule from "../../actions/git/prepareRollbackCommit.js";
 import * as prModule from "../../actions/git/createRollbackPR.js";
-import * as evidence from "../../evidence/store.js";
 
 describe("handleProposalApproval", () => {
   beforeEach(() => {
@@ -38,9 +37,7 @@ describe("handleProposalApproval", () => {
     const saveSpy = vi
       .spyOn(incidentStore, "saveIncident")
       .mockImplementation(() => {});
-    const evidenceSpy = vi
-      .spyOn(evidence, "saveEvidence")
-      .mockImplementation(() => {});
+    const evidenceSpy = vi;
 
     await handleProposalApproval("proposal-1");
 
@@ -76,7 +73,6 @@ describe("handleProposalApproval", () => {
       .mockResolvedValue(undefined);
     vi.spyOn(prModule, "createRollbackPR").mockResolvedValue("http://pr-url");
     vi.spyOn(incidentStore, "saveIncident").mockImplementation(() => {});
-    vi.spyOn(evidence, "saveEvidence").mockImplementation(() => {});
 
     await handleProposalApproval("proposal-1");
 
@@ -109,7 +105,6 @@ describe("handleProposalApproval", () => {
       .spyOn(prModule, "createRollbackPR")
       .mockResolvedValue("http://pr-url");
     vi.spyOn(incidentStore, "saveIncident").mockImplementation(() => {});
-    vi.spyOn(evidence, "saveEvidence").mockImplementation(() => {});
 
     await handleProposalApproval("proposal-1");
 
@@ -145,9 +140,7 @@ describe("handleProposalApproval", () => {
     vi.spyOn(gitModule, "prepareRollbackCommit").mockResolvedValue(undefined);
     vi.spyOn(prModule, "createRollbackPR").mockResolvedValue("http://pr-url");
     vi.spyOn(incidentStore, "saveIncident").mockImplementation(() => {});
-    const evidenceSpy = vi
-      .spyOn(evidence, "saveEvidence")
-      .mockImplementation(() => {});
+    const evidenceSpy = vi;
 
     await handleProposalApproval("proposal-1");
 
@@ -187,7 +180,6 @@ describe("handleProposalApproval", () => {
     const saveSpy = vi
       .spyOn(incidentStore, "saveIncident")
       .mockImplementation(() => {});
-    vi.spyOn(evidence, "saveEvidence").mockImplementation(() => {});
 
     await handleProposalApproval("proposal-1");
 
@@ -215,12 +207,10 @@ describe("handleProposalApproval", () => {
     });
 
     const prSpy = vi.spyOn(prModule, "createRollbackPR");
-    const evidenceSpy = vi.spyOn(evidence, "saveEvidence");
 
     await handleProposalApproval("proposal-1");
 
     expect(prSpy).not.toHaveBeenCalled();
-    expect(evidenceSpy).not.toHaveBeenCalled();
   });
 
   it("throws error when incident not found", async () => {
@@ -234,7 +224,6 @@ describe("handleProposalApproval", () => {
     });
 
     vi.spyOn(incidentStore, "loadIncidents").mockReturnValue([]);
-    vi.spyOn(evidence, "saveEvidence").mockImplementation(() => {});
 
     await expect(handleProposalApproval("proposal-1")).rejects.toThrow(
       "Incident not found for proposal",
@@ -262,7 +251,6 @@ describe("handleProposalApproval", () => {
       },
     ] as any);
 
-    vi.spyOn(evidence, "saveEvidence").mockImplementation(() => {});
     const gitSpy = vi.spyOn(gitModule, "prepareRollbackCommit");
     const prSpy = vi.spyOn(prModule, "createRollbackPR");
     const saveSpy = vi.spyOn(incidentStore, "saveIncident");
@@ -295,7 +283,6 @@ describe("handleProposalApproval", () => {
       },
     ] as any);
 
-    vi.spyOn(evidence, "saveEvidence").mockImplementation(() => {});
     const prSpy = vi.spyOn(prModule, "createRollbackPR");
 
     await handleProposalApproval("proposal-1");

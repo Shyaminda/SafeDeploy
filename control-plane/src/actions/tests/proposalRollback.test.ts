@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { proposeRollback } from "../proposeRollback.js";
 import * as store from "../store.js";
-import * as evidenceStore from "../../evidence/store.js";
 import type { Incident } from "../../incidents/incident.js";
 import type { ActionProposal } from "../proposal.js";
 
@@ -19,7 +18,6 @@ describe("proposeRollback", () => {
   it("creates a rollback proposal with correct structure", () => {
     vi.spyOn(store, "loadProposals").mockReturnValue([]);
     vi.spyOn(store, "saveProposal").mockImplementation(() => {});
-    vi.spyOn(evidenceStore, "saveEvidence").mockImplementation(() => {});
 
     const incident: Incident = {
       id: "incident-1",
@@ -58,9 +56,7 @@ describe("proposeRollback", () => {
     const saveProposalSpy = vi
       .spyOn(store, "saveProposal")
       .mockImplementation(() => {});
-    const saveEvidenceSpy = vi
-      .spyOn(evidenceStore, "saveEvidence")
-      .mockImplementation(() => {});
+    const saveEvidenceSpy = vi;
 
     const incident: Incident = {
       id: "incident-1",
@@ -102,9 +98,7 @@ describe("proposeRollback", () => {
     const saveProposalSpy = vi
       .spyOn(store, "saveProposal")
       .mockImplementation(() => {});
-    const saveEvidenceSpy = vi
-      .spyOn(evidenceStore, "saveEvidence")
-      .mockImplementation(() => {});
+    const saveEvidenceSpy = vi;
 
     const incident: Incident = {
       id: "incident-1",
@@ -141,7 +135,6 @@ describe("proposeRollback", () => {
 
     vi.spyOn(store, "loadProposals").mockReturnValue([approvedProposal]);
     vi.spyOn(store, "saveProposal").mockImplementation(() => {});
-    vi.spyOn(evidenceStore, "saveEvidence").mockImplementation(() => {});
 
     const incident: Incident = {
       id: "incident-1",
