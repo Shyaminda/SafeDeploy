@@ -1,5 +1,4 @@
 import { logger } from "../../../lib/logger.js";
-import { saveEvidence } from "../evidence/store.js";
 import type { Incident } from "../incidents/incident.js";
 import { transitionIncident } from "../incidents/lifecycle.js";
 import { saveIncident } from "../incidents/store.js";
@@ -25,11 +24,6 @@ export function createPolicyViolationIncident(
   );
 
   saveIncident(investigating);
-
-  saveEvidence(investigating.id, "policy-violations.json", {
-    violations,
-    detectedAt: new Date().toISOString(),
-  });
 
   logger.warn({
     message: `[POLICY INCIDENT] ${investigating.id} created`,
