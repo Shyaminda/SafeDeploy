@@ -71,7 +71,8 @@
     "lint:fix": "eslint . --fix",
     "prepare": "husky",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "report": "node dist/control-plane/src/system/reliabilityReport.js"
   },
   "lint-staged": {
     "*.{ts,js}": [

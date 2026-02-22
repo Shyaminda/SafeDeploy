@@ -22,9 +22,9 @@ import {
 } from "../helper/freezeWindow.js";
 import type { PolicyViolation } from "../policy/policyTypes.js";
 import { initializeOrRotateWindow } from "../helper/initializeBudgetWindow.js";
-import { saveBudgetWindow } from "../budget-state/budgetWindowDefinition.js";
 import type { ServiceDefinition } from "../catalog/serviceDefinition.js";
 import { appendAudit } from "../audit/store.js";
+import { saveBudgetWindow } from "../budget-state/store.js";
 
 async function evaluateRuntimeHealth(): Promise<{
   budget: ErrorBudget;
