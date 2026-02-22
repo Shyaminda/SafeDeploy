@@ -1,0 +1,33 @@
+[
+  {
+    "service": "demo-app",
+    "owner": "platform-team",
+    "budget": {
+      "allowed": 10.000000000000009,
+      "consumed": 10.000000000000009,
+      "remaining": 0,
+      "windowStart": "2026-02-21T20:12:41.454Z"
+    },
+    "freeze": {
+      "active": false,
+      "freezeUntil": "2026-02-21T21:12:37.960Z"
+    },
+    "activeIncident": {
+      "id": "incident-1771707405627",
+      "state": "investigating",
+      "severity": "exhausted"
+    },
+    "activeProposals": [
+      {
+        "id": "proposal-1771707405628",
+        "type": "rollback-rollout",
+        "status": "proposed"
+      },
+      {
+        "id": "proposal-1771707457972",
+        "type": "block-promotion",
+        "status": "proposed"
+      }
+    ]
+  }
+]
