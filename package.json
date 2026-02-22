@@ -72,7 +72,8 @@
     "prepare": "husky",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "report": "node dist/control-plane/src/system/reliabilityReport.js"
+    "report": "node dist/control-plane/src/system/reliabilityReport.js",
+    "report:json": "node dist/control-plane/src/system/reliabilityReport.js > report.json"
   },
   "lint-staged": {
     "*.{ts,js}": [
