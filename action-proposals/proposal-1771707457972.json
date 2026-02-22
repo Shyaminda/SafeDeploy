@@ -1,8 +1,8 @@
 {
-  "id": "proposal-1771705145964",
-  "incidentId": "incident-policy-1771705145962",
+  "id": "proposal-1771707457972",
+  "incidentId": "incident-policy-1771707457970",
   "type": "block-promotion",
-  "createdAt": "2026-02-21T20:19:05.964Z",
+  "createdAt": "2026-02-21T20:57:37.972Z",
   "status": "proposed",
   "justification": {
     "severity": "policy-violation",
