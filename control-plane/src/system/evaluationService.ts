@@ -141,6 +141,7 @@ async function evaluateRuntimeHealth(): Promise<{
   const activeIncident = incidents.find(
     (i) =>
       i.service === "demo-app" &&
+      i.severity === "exhausted" &&
       !["resolved", "postmortem-complete"].includes(i.currentState),
   );
 
