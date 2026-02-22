@@ -1,14 +1,8 @@
 import fs from "fs";
 import path from "path";
+import type { BudgetWindowState } from "./budgetWindowDefinition.js";
 
 const BASE = path.join(process.cwd(), "control-plane", "state", "budget");
-
-export interface BudgetWindowState {
-  service: string;
-  windowStart: string;
-  allowed: number;
-  consumedSoFar: number;
-}
 
 function getFilePath(service: string): string {
   return path.join(BASE, `${service}.json`);

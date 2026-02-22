@@ -21,8 +21,8 @@ import {
   updateFreezeWindow,
 } from "../helper/freezeWindow.js";
 import type { PolicyViolation } from "../policy/policyTypes.js";
-import { initializeOrRotateWindow } from "../helper/budgetWindow.js";
-import { saveBudgetWindow } from "../budget-state/budgetWindow.js";
+import { initializeOrRotateWindow } from "../helper/initializeBudgetWindow.js";
+import { saveBudgetWindow } from "../budget-state/budgetWindowDefinition.js";
 import type { ServiceDefinition } from "../catalog/serviceDefinition.js";
 import { appendAudit } from "../audit/store.js";
 
