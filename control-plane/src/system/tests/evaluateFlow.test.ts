@@ -12,7 +12,62 @@ import { evaluateDemoService } from "../evaluationService.js";
 vi.mock("../../../../lib/logger.js", () => ({
   logger: {
     info: vi.fn(),
+    warn: vi.fn(),
   },
+}));
+
+vi.mock("../../audit/store.js", () => ({
+  appendAudit: vi.fn(),
+}));
+
+vi.mock("../../health-state/store.js", () => ({
+  loadServiceHealthState: vi.fn(() => null),
+  saveServiceHealthState: vi.fn(),
+}));
+
+vi.mock("../../helper/freezeWindow.js", () => ({
+  unfreezeIfExpired: vi.fn(),
+  updateFreezeWindow: vi.fn(),
+}));
+
+vi.mock("../../helper/initializeBudgetWindow.js", () => ({
+  initializeOrRotateWindow: vi.fn(() => ({
+    service: "demo-app",
+    windowStart: new Date().toISOString(),
+    allowed: 10,
+    consumedSoFar: 0,
+  })),
+}));
+
+vi.mock("../../budget-state/store.js", () => ({
+  saveBudgetWindow: vi.fn(),
+}));
+
+vi.mock("../../catalog/catalogStore.js", () => ({
+  loadService: vi.fn(() => ({
+    name: "demo-app",
+    owner: "platform-team",
+    slos: [{ name: "latency-p95-300ms", target: 0.999 }],
+    deploymentStrategy: "canary",
+    rollbackStrategy: "git-revert",
+    runbookUrl: "https://internal/runbooks/demo-app",
+    costBudget: 100,
+  })),
+}));
+
+vi.mock("../../helper/createPolicyViolation.js", () => ({
+  createPolicyViolationIncident: vi.fn(() => ({
+    id: "incident-policy-mock",
+    service: "demo-app",
+    severity: "policy-violation",
+    currentState: "investigating",
+    timeline: [],
+    createdAt: new Date().toISOString(),
+  })),
+}));
+
+vi.mock("../../actions/proposeBlockPromotion.js", () => ({
+  proposeBlockPromotion: vi.fn(),
 }));
 
 describe("Full control-plane flow", () => {
@@ -52,7 +107,7 @@ describe("Full control-plane flow", () => {
     // Evidence saved: decision + slo + budget
   });
 
-  it("creates incident but NOT proposal for fast-burn severity", async () => {
+  it("does not create incident for fast-burn severity", async () => {
     vi.spyOn(prometheus, "queryPrometheus").mockResolvedValue([
       { value: ["", "0.5"] }, // 500ms - above 300ms target
     ] as any);
@@ -71,10 +126,10 @@ describe("Full control-plane flow", () => {
 
     await evaluateDemoService();
 
-    // Incident created
-    expect(saveSpy).toHaveBeenCalledTimes(1);
+    // No runtime incident for fast-burn (only exhausted triggers incident)
+    expect(saveSpy).not.toHaveBeenCalled();
 
-    // NO proposal for fast-burn (only exhausted triggers proposal)
+    // NO rollback proposal for fast-burn
     expect(proposalSpy).not.toHaveBeenCalled();
   });
 
@@ -291,27 +346,23 @@ describe("Full control-plane flow", () => {
     vi.spyOn(sliModule, "DEMO_APP_SLIS", "get").mockReturnValue([]);
 
     await expect(evaluateDemoService()).rejects.toThrow(
-      "SLI 'request_latency_p95' not found in configuration",
+      "Latency SLI/SLO not found",
     );
   });
 
-  it("throws error when Prometheus returns no metrics", async () => {
+  it("handles empty Prometheus response gracefully", async () => {
     vi.spyOn(prometheus, "queryPrometheus").mockResolvedValue([]);
+    vi.spyOn(incidentStore, "loadIncidents").mockReturnValue([]);
 
-    await expect(evaluateDemoService()).rejects.toThrow(
-      "No metrics data returned from Prometheus",
-    );
+    // When Prometheus returns no data, latency is treated as 0ms (healthy)
+    await evaluateDemoService();
   });
 
   it("throws error when SLO is not found", async () => {
-    vi.spyOn(prometheus, "queryPrometheus").mockResolvedValue([
-      { value: ["", "0.5"] },
-    ] as any);
-
     vi.spyOn(sloModule, "DEMO_APP_SLOS", "get").mockReturnValue([]);
 
     await expect(evaluateDemoService()).rejects.toThrow(
-      "SLO for latency not found in configuration",
+      "Latency SLI/SLO not found",
     );
   });
 });

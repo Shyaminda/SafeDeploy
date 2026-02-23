@@ -6,7 +6,62 @@ import * as incidentStore from "../../incidents/store.js";
 vi.mock("../../../../lib/logger.js", () => ({
   logger: {
     info: vi.fn(),
+    warn: vi.fn(),
   },
+}));
+
+vi.mock("../../audit/store.js", () => ({
+  appendAudit: vi.fn(),
+}));
+
+vi.mock("../../health-state/store.js", () => ({
+  loadServiceHealthState: vi.fn(() => null),
+  saveServiceHealthState: vi.fn(),
+}));
+
+vi.mock("../../helper/freezeWindow.js", () => ({
+  unfreezeIfExpired: vi.fn(),
+  updateFreezeWindow: vi.fn(),
+}));
+
+vi.mock("../../helper/initializeBudgetWindow.js", () => ({
+  initializeOrRotateWindow: vi.fn(() => ({
+    service: "demo-app",
+    windowStart: new Date().toISOString(),
+    allowed: 10,
+    consumedSoFar: 0,
+  })),
+}));
+
+vi.mock("../../budget-state/store.js", () => ({
+  saveBudgetWindow: vi.fn(),
+}));
+
+vi.mock("../../catalog/catalogStore.js", () => ({
+  loadService: vi.fn(() => ({
+    name: "demo-app",
+    owner: "platform-team",
+    slos: [{ name: "latency-p95-300ms", target: 0.999 }],
+    deploymentStrategy: "canary",
+    rollbackStrategy: "git-revert",
+    runbookUrl: "https://internal/runbooks/demo-app",
+    costBudget: 100,
+  })),
+}));
+
+vi.mock("../../helper/createPolicyViolation.js", () => ({
+  createPolicyViolationIncident: vi.fn(() => ({
+    id: "incident-policy-mock",
+    service: "demo-app",
+    severity: "policy-violation",
+    currentState: "investigating",
+    timeline: [],
+    createdAt: new Date().toISOString(),
+  })),
+}));
+
+vi.mock("../../actions/proposeBlockPromotion.js", () => ({
+  proposeBlockPromotion: vi.fn(),
 }));
 
 describe("Recovery flow", () => {
@@ -68,7 +123,7 @@ describe("Recovery flow", () => {
     );
   });
 
-  it("saves resolution evidence with correct structure", async () => {
+  it("logs resolution audit when incident is resolved", async () => {
     vi.spyOn(prometheus, "queryPrometheus").mockResolvedValue([
       { value: ["", "0.1"] },
     ] as any);
@@ -85,15 +140,17 @@ describe("Recovery flow", () => {
     ] as any);
 
     vi.spyOn(incidentStore, "saveIncident").mockImplementation(() => {});
-    const evidenceSpy = vi;
+
+    const { appendAudit } = await import("../../audit/store.js");
 
     await evaluateDemoService();
 
-    expect(evidenceSpy).toHaveBeenCalledWith(
-      "incident-1",
-      "resolution.json",
+    expect(appendAudit).toHaveBeenCalledWith(
+      "incidents",
       expect.objectContaining({
-        reason: "SLO returned to healthy state after mitigation",
+        incidentId: "incident-1",
+        state: "resolved",
+        resolved: true,
       }),
     );
   });

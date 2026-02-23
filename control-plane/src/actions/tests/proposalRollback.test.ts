@@ -10,6 +10,10 @@ vi.mock("../../../../lib/logger.js", () => ({
   },
 }));
 
+vi.mock("../../audit/store.js", () => ({
+  appendAudit: vi.fn(),
+}));
+
 describe("proposeRollback", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -51,12 +55,11 @@ describe("proposeRollback", () => {
     });
   });
 
-  it("saves proposal and evidence when creating new proposal", () => {
+  it("saves proposal when creating new proposal", () => {
     vi.spyOn(store, "loadProposals").mockReturnValue([]);
     const saveProposalSpy = vi
       .spyOn(store, "saveProposal")
       .mockImplementation(() => {});
-    const saveEvidenceSpy = vi;
 
     const incident: Incident = {
       id: "incident-1",
@@ -77,11 +80,6 @@ describe("proposeRollback", () => {
     const proposal = proposeRollback(incident, budget, "Budget exhausted");
 
     expect(saveProposalSpy).toHaveBeenCalledWith(proposal);
-    expect(saveEvidenceSpy).toHaveBeenCalledWith(
-      "incident-1",
-      "proposal.json",
-      proposal,
-    );
   });
 
   it("returns existing proposal if one already exists for the incident", () => {
@@ -98,7 +96,6 @@ describe("proposeRollback", () => {
     const saveProposalSpy = vi
       .spyOn(store, "saveProposal")
       .mockImplementation(() => {});
-    const saveEvidenceSpy = vi;
 
     const incident: Incident = {
       id: "incident-1",
@@ -120,7 +117,6 @@ describe("proposeRollback", () => {
 
     expect(result).toBe(existingProposal);
     expect(saveProposalSpy).not.toHaveBeenCalled();
-    expect(saveEvidenceSpy).not.toHaveBeenCalled();
   });
 
   it("creates new proposal if existing proposal has different status", () => {
