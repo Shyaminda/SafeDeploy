@@ -5,6 +5,10 @@ import * as incidentStore from "../../incidents/store.js";
 import * as gitModule from "../../actions/git/prepareRollbackCommit.js";
 import * as prModule from "../../actions/git/createRollbackPR.js";
 
+vi.mock("../../audit/store.js", () => ({
+  appendAudit: vi.fn(),
+}));
+
 describe("handleProposalApproval", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -37,14 +41,12 @@ describe("handleProposalApproval", () => {
     const saveSpy = vi
       .spyOn(incidentStore, "saveIncident")
       .mockImplementation(() => {});
-    const evidenceSpy = vi;
 
     await handleProposalApproval("proposal-1");
 
     expect(gitModule.prepareRollbackCommit).toHaveBeenCalled();
     expect(prModule.createRollbackPR).toHaveBeenCalled();
     expect(saveSpy).toHaveBeenCalled();
-    expect(evidenceSpy).toHaveBeenCalled(); // approval evidence
   });
 
   it("calls prepareRollbackCommit with correct arguments", async () => {
@@ -116,7 +118,7 @@ describe("handleProposalApproval", () => {
     );
   });
 
-  it("saves approval evidence with correct structure", async () => {
+  it("logs approval audit with correct structure", async () => {
     vi.spyOn(proposalModule, "approveProposal").mockReturnValue({
       id: "proposal-1",
       incidentId: "incident-1",
@@ -140,14 +142,15 @@ describe("handleProposalApproval", () => {
     vi.spyOn(gitModule, "prepareRollbackCommit").mockResolvedValue(undefined);
     vi.spyOn(prModule, "createRollbackPR").mockResolvedValue("http://pr-url");
     vi.spyOn(incidentStore, "saveIncident").mockImplementation(() => {});
-    const evidenceSpy = vi;
+
+    const { appendAudit } = await import("../../audit/store.js");
 
     await handleProposalApproval("proposal-1");
 
-    expect(evidenceSpy).toHaveBeenCalledWith(
-      "incident-1",
-      "approval.json",
+    expect(appendAudit).toHaveBeenCalledWith(
+      "proposals",
       expect.objectContaining({
+        type: "proposal-approved",
         proposalId: "proposal-1",
         approvedBy: "user",
       }),
