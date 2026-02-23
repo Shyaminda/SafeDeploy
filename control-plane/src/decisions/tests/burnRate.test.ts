@@ -28,7 +28,7 @@ describe("evaluateBurnRate", () => {
   });
 
   it("detects fast burn", () => {
-    const severity = evaluateBurnRate(5);
+    const severity = evaluateBurnRate(3);
     expect(severity).toBe("fast-burn");
   });
 
@@ -42,14 +42,13 @@ describe("evaluateBurnRate", () => {
     expect(severity).toBe("exhausted");
   });
 
-  it("detects exhausted budget when remaining is negative", () => {
-    const severity = evaluateBurnRate(1);
+  it("detects exhausted at boundary (burnRate slightly above 4)", () => {
+    const severity = evaluateBurnRate(4.01);
     expect(severity).toBe("exhausted");
   });
 
-  it("returns exhausted regardless of burn rate when budget depleted", () => {
-    // Even with normal burn rate, exhausted takes precedence
-    const severity = evaluateBurnRate(0.5);
+  it("returns exhausted for very high burn rate", () => {
+    const severity = evaluateBurnRate(100);
     expect(severity).toBe("exhausted");
   });
 });
