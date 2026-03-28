@@ -1,4 +1,4 @@
-# # SafeDeploy — SLO-Driven Reliability Control Plane
+# 🪂 SafeDeploy — SLO-Driven Reliability Control Plane
 
 SafeDeploy is a **reliability governance control plane** that evaluates system health using SLOs and error budgets, manages incidents as stateful workflows, and enforces safe operational actions through GitOps.
 
