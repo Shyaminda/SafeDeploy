@@ -14,11 +14,11 @@ Modern systems change faster than teams can safely understand their impact.
 
 As a result:
 
-* Deployments introduce outages
-* Monitoring reflects infrastructure, not user experience
-* Incidents are reactive and inconsistent
-* Teams repeat the same failures
-* Automation is either unsafe or underutilized
+- Deployments introduce outages
+- Monitoring reflects infrastructure, not user experience
+- Incidents are reactive and inconsistent
+- Teams repeat the same failures
+- Automation is either unsafe or underutilized
 
 SafeDeploy addresses this by treating **reliability as a governed system**, not an afterthought.
 
@@ -28,13 +28,13 @@ SafeDeploy addresses this by treating **reliability as a governed system**, not 
 
 SafeDeploy is a **control plane** that:
 
-* Defines **what “healthy” means** using SLOs
-* Evaluates **real-time system behavior** via Prometheus
-* Converts signals into **error budgets and burn rates**
-* Manages **incident lifecycle state**
-* Generates **proposed operational actions** (rollback, promotion control)
-* Enforces **policy and governance rules**
-* Executes changes **only through Git (never directly)**
+- Defines **what “healthy” means** using SLOs
+- Evaluates **real-time system behavior** via Prometheus
+- Converts signals into **error budgets and burn rates**
+- Manages **incident lifecycle state**
+- Generates **proposed operational actions** (rollback, promotion control)
+- Enforces **policy and governance rules**
+- Executes changes **only through Git (never directly)**
 
 ---
 
@@ -42,15 +42,19 @@ SafeDeploy is a **control plane** that:
 
 SafeDeploy enforces a strict separation of concerns:
 
+![SafeDeploy architecture diagram](assets/arch.png)
+
+The diagram below summarizes the control plane, execution plane, observability layer, and human approval flow.
+
 ### Control Plane (SafeDeploy Core)
 
 Responsible for reasoning, governance, and decision-making:
 
-* SLO & error budget evaluation
-* Incident lifecycle management
-* Policy enforcement (SLOs, ownership, rollout strategy)
-* Proposal generation (rollback / promotion control)
-* Audit & evidence tracking
+- SLO & error budget evaluation
+- Incident lifecycle management
+- Policy enforcement (SLOs, ownership, rollout strategy)
+- Proposal generation (rollback / promotion control)
+- Audit & evidence tracking
 
 > The control plane **never mutates production systems directly**.
 
@@ -60,9 +64,9 @@ Responsible for reasoning, governance, and decision-making:
 
 Responsible only for applying approved changes:
 
-* ArgoCD (GitOps synchronization)
-* Argo Rollouts (progressive delivery)
-* Kubernetes (runtime execution)
+- ArgoCD (GitOps synchronization)
+- Argo Rollouts (progressive delivery)
+- Kubernetes (runtime execution)
 
 All actions flow through:
 
@@ -76,9 +80,9 @@ There are **no direct API calls or kubectl actions** from SafeDeploy.
 
 ### Observability Layer (Source of Truth)
 
-* Prometheus provides all runtime signals
-* SafeDeploy is strictly **read-only**
-* All decisions are derived from observable evidence
+- Prometheus provides all runtime signals
+- SafeDeploy is strictly **read-only**
+- All decisions are derived from observable evidence
 
 > SafeDeploy never invents metrics or assumptions.
 
@@ -91,16 +95,16 @@ The system continuously evaluates service health:
 1. Fetch metrics from Prometheus
 2. Compute SLI → SLO → error budget
 3. Calculate burn rate severity:
+   - `normal`
+   - `slow-burn`
+   - `fast-burn`
+   - `exhausted`
 
-   * `normal`
-   * `slow-burn`
-   * `fast-burn`
-   * `exhausted`
 4. If unhealthy:
+   - Create or update incident
+   - Generate rollback proposal (idempotent)
+   - Apply freeze window if needed
 
-   * Create or update incident
-   * Generate rollback proposal (idempotent)
-   * Apply freeze window if needed
 5. Evaluate promotion eligibility via policy engine
 6. Append audit evidence
 
@@ -116,10 +120,10 @@ detected → investigating → mitigated → resolved → postmortem-complete
 
 Key properties:
 
-* One active incident per service
-* No duplication
-* Explicit, timestamped transitions
-* Fully persisted and replayable
+- One active incident per service
+- No duplication
+- Explicit, timestamped transitions
+- Fully persisted and replayable
 
 ---
 
@@ -129,15 +133,15 @@ SafeDeploy does not act directly.
 
 Instead, it generates **proposals**:
 
-* `rollback-rollout`
-* `promote-canary`
-* `block-promotion`
+- `rollback-rollout`
+- `promote-canary`
+- `block-promotion`
 
 Properties:
 
-* Proposals are **inert**
-* Require **human approval**
-* Idempotent (no duplicates per incident)
+- Proposals are **inert**
+- Require **human approval**
+- Idempotent (no duplicates per incident)
 
 ---
 
@@ -164,10 +168,10 @@ SafeDeploy enforces both **structural** and **runtime** policies.
 
 Every service must define:
 
-* Owner
-* SLOs
-* Rollback strategy
-* Deployment strategy (canary required)
+- Owner
+- SLOs
+- Rollback strategy
+- Deployment strategy (canary required)
 
 ---
 
@@ -175,15 +179,15 @@ Every service must define:
 
 Deployment is blocked if:
 
-* Error budget is exhausted
-* Burn rate exceeds safe threshold
-* Remaining budget is below safety margin
-* Freeze window is active
+- Error budget is exhausted
+- Burn rate exceeds safe threshold
+- Remaining budget is below safety margin
+- Freeze window is active
 
 Violations result in:
 
-* Policy incidents
-* Promotion-block proposals
+- Policy incidents
+- Promotion-block proposals
 
 ---
 
@@ -191,9 +195,9 @@ Violations result in:
 
 When error budget is exhausted:
 
-* Service enters a **temporary freeze period**
-* All promotions are blocked
-* Stability is enforced before further changes
+- Service enters a **temporary freeze period**
+- All promotions are blocked
+- Stability is enforced before further changes
 
 This prevents rapid redeploy cycles during instability.
 
@@ -216,14 +220,14 @@ evidence/
 
 Additionally:
 
-* Append-only audit logs
-* Stream-separated domains (`metrics`, `budget`, `incidents`, `governance`)
+- Append-only audit logs
+- Stream-separated domains (`metrics`, `budget`, `incidents`, `governance`)
 
 Guarantees:
 
-* Full traceability
-* Explainable decisions
-* Replayable system behavior
+- Full traceability
+- Explainable decisions
+- Replayable system behavior
 
 ---
 
@@ -231,16 +235,16 @@ Guarantees:
 
 All state is stored locally as artifacts:
 
-* `incidents/*.json`
-* `action-proposals/*.json`
-* `control-plane/state/*`
-* `control-plane/audit/*.log`
+- `incidents/*.json`
+- `action-proposals/*.json`
+- `control-plane/state/*`
+- `control-plane/audit/*.log`
 
 This design prioritizes:
 
-* Simplicity
-* Debuggability
-* Deterministic behavior
+- Simplicity
+- Debuggability
+- Deterministic behavior
 
 ---
 
@@ -248,11 +252,11 @@ This design prioritizes:
 
 SafeDeploy can generate a full system snapshot including:
 
-* Service metadata
-* Error budget state
-* Active incidents
-* Active proposals
-* Governance status
+- Service metadata
+- Error budget state
+- Active incidents
+- Active proposals
+- Governance status
 
 ---
 
@@ -260,52 +264,52 @@ SafeDeploy can generate a full system snapshot including:
 
 ### Control Plane
 
-* TypeScript (Node.js)
-* Zod (runtime validation)
-* Vitest (testing)
+- TypeScript (Node.js)
+- Zod (runtime validation)
+- Vitest (testing)
 
 ### Observability
 
-* Prometheus (metrics & query API)
+- Prometheus (metrics & query API)
 
 ### Execution Plane
 
-* Kubernetes
-* ArgoCD (GitOps)
-* Argo Rollouts (progressive delivery / canary)
+- Kubernetes
+- ArgoCD (GitOps)
+- Argo Rollouts (progressive delivery / canary)
 
 ### Infrastructure & Tooling
 
-* Docker (image build)
-* pnpm (package management)
-* ESLint + Prettier (code quality)
-* Husky + lint-staged (pre-commit enforcement)
+- Docker (image build)
+- pnpm (package management)
+- ESLint + Prettier (code quality)
+- Husky + lint-staged (pre-commit enforcement)
 
 ### Architecture Patterns
 
-* GitOps
-* Progressive Delivery (Canary)
-* SLO / Error Budget–driven decisions
-* Event-driven incident lifecycle
+- GitOps
+- Progressive Delivery (Canary)
+- SLO / Error Budget–driven decisions
+- Event-driven incident lifecycle
 
 ---
 
 ## 🧪 Engineering Quality
 
-* Strict TypeScript (`strict`, `noUncheckedIndexedAccess`)
-* Zod runtime validation (env + Prometheus responses)
-* ~98% test coverage (Vitest)
-* ESLint + security rules
-* Pre-commit enforcement (Husky)
-* Deterministic package management (pnpm)
+- Strict TypeScript (`strict`, `noUncheckedIndexedAccess`)
+- Zod runtime validation (env + Prometheus responses)
+- ~98% test coverage (Vitest)
+- ESLint + security rules
+- Pre-commit enforcement (Husky)
+- Deterministic package management (pnpm)
 
 ---
 
 ## ⚠️ Current Scope
 
-* Single-service prototype (`demo-app`)
-* File-based persistence (no DB yet)
-* CLI-based approval workflow
+- Single-service prototype (`demo-app`)
+- File-based persistence (no DB yet)
+- CLI-based approval workflow
 
 This is intentional to prioritize **correctness, traceability, and architecture clarity**.
 
@@ -315,21 +319,21 @@ This is intentional to prioritize **correctness, traceability, and architecture 
 
 SafeDeploy demonstrates how to:
 
-* Treat deployments as **risk-managed decisions**
-* Use SLOs as the **source of truth**
-* Convert metrics into **governed actions**
-* Enforce **reliability at the platform level**
-* Keep humans in control while enabling automation
+- Treat deployments as **risk-managed decisions**
+- Use SLOs as the **source of truth**
+- Convert metrics into **governed actions**
+- Enforce **reliability at the platform level**
+- Keep humans in control while enabling automation
 
 ---
 
 ## 🧩 Key Principles
 
-* Git is the only path to production
-* No direct production access
-* Metrics before automation
-* Humans retain authority
-* Learning is mandatory and persistent
+- Git is the only path to production
+- No direct production access
+- Metrics before automation
+- Humans retain authority
+- Learning is mandatory and persistent
 
 ---
 
@@ -339,11 +343,10 @@ SafeDeploy is not a deployment tool.
 
 It is a **reliability governance system** that decides:
 
-> *Should this system change — and is it safe to do so right now?*
+> _Should this system change — and is it safe to do so right now?_
 
 ---
 
 ## 📄 License
 
 ISC
-
